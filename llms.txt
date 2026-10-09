@@ -1,0 +1,9 @@
+# Cult
+
+> Cult is a hair salon in Portland, Oregon. Sean Thomas is a hairstylist and colorist there with 24 years of experience. Book at https://www.vagaro.com/destijlpdx/book-now
+
+## Pages
+- [Book](https://YOUR-DOMAIN/book.html): book an appointment
+- [Sean Thomas](https://YOUR-DOMAIN/bio.html): experience and training
+- [Gallery](https://YOUR-DOMAIN/gallery.html): recent work
+- [The salon](https://YOUR-DOMAIN/space.html): about the salon
