@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#FF8A90">
+<meta name="robots" content="noindex">
+<title>Cult chairs</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cult chairs">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jura:wght@400;500&family=Instrument+Sans:wght@400;500&family=Anton&family=Archivo:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{--ink:#111;--mute:#5A5754;--panel:#F3F1EE;--coral:#FF8A90;--display:'Jura','Futura',system-ui,sans-serif;--body:'Instrument Sans','Helvetica Neue',Arial,sans-serif;color-scheme:light only}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:18px/1.5 var(--body);padding:0 16px env(safe-area-inset-bottom)}
+.wrap{max-width:860px;margin:0 auto;padding-bottom:60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1.5px solid var(--ink);flex-wrap:wrap}
+header img{height:54px;display:block}
+h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.1;margin:0}
+h1{font-size:clamp(30px,7vw,44px);color:var(--coral);margin:26px 0 8px}
+h2{font-size:24px;margin:26px 0 10px}
+p{margin:0 0 10px}.small{font-size:15px;color:var(--mute)}
+a{color:inherit}
+button,.btn{font:500 18px var(--display);border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:10px 18px;min-height:46px;cursor:pointer}
+button.solid{background:var(--ink);color:#fff}
+button:hover:not(:disabled){background:var(--coral);border-color:var(--coral);color:var(--ink)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.link{border:0;padding:6px 0;min-height:0;text-decoration:underline;background:none}
+input,select,textarea{font:inherit;font-size:18px;padding:11px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);width:100%;min-height:46px;border-radius:0}
+label{display:grid;gap:4px;font-size:15px;color:var(--mute);margin-bottom:12px}
+.card{border:1.5px solid var(--ink);padding:18px;margin:12px 0}
+.msg{background:var(--coral);padding:10px 14px;margin:12px 0}
+.err{border:1.5px solid var(--ink);background:#fff;padding:10px 14px;margin:12px 0}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.tabs button[aria-pressed=true]{background:var(--ink);color:#fff}
+.steps{display:flex;gap:6px;flex-wrap:wrap;padding:0;list-style:none;margin:14px 0}
+.steps li{font-size:14px;padding:5px 10px;border:1.5px solid #ccc;color:var(--mute)}
+.steps li.done{border-color:var(--ink);color:var(--ink)}.steps li.now{background:var(--coral);border-color:var(--coral);color:var(--ink)}
+.bank{font:500 clamp(40px,10vw,64px) var(--display);color:var(--coral);line-height:1}
+.grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.day{border:1.5px solid #ccc;padding:8px;display:grid;gap:6px;font-size:15px}
+.blk{font:inherit;font-size:15px;padding:8px;min-height:44px;text-align:left}
+.blk.mine{background:var(--ink);color:#fff}.blk:disabled{border-color:#ccc;color:#999;background:var(--panel)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+table{border-collapse:collapse;width:100%;font-size:16px}td,th{border-bottom:1px solid #ddd;padding:8px 4px;text-align:left;vertical-align:top}
+.terms{max-height:260px;overflow:auto;border:1.5px solid var(--ink);padding:14px;font-size:16px;background:var(--panel)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hide{display:none!important}
+/* press feedback: every button squishes and bounces so it is obvious it was tapped */
+button{transition:transform .08s ease-out,opacity .15s}
+button:active:not(:disabled){transform:scale(.93)}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(.92)}65%{transform:scale(1.06)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:no-preference){button.pressed{animation:pop .38s ease-out}}
+button.busy{opacity:.65;pointer-events:none}
+/* upload feedback: coral button with a sliding bar while uploading, green check when done */
+button.uploading{background:var(--coral);color:#111;border-color:#111;pointer-events:none;position:relative;overflow:hidden}
+button.uploading::after{content:'';position:absolute;left:-40%;bottom:0;height:5px;width:40%;background:#111;animation:upslide 1s linear infinite}
+@keyframes upslide{0%{left:-40%}100%{left:100%}}
+button.done{background:#1b7f3b;color:#fff;border-color:#1b7f3b;pointer-events:none}
+@media (prefers-reduced-motion:reduce){button.uploading::after{animation:none;width:100%;left:0}}
+.fh{display:block;font-size:14px;margin-top:4px;color:#1b7f3b;font-weight:600}
+
+.mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.mgrid .wd{font-size:12px;color:var(--mute);text-align:center;padding:2px 0}
+.mday{font:15px var(--body);min-height:52px;padding:4px 5px;text-align:left;border:1.5px solid #ccc;background:#fff;display:flex;flex-direction:column;gap:2px;align-items:flex-start;justify-content:flex-start}
+.mday .m{font-size:11px;line-height:1.2;color:var(--mute);overflow:hidden;max-width:100%}
+.mday.sel{border-color:var(--ink);background:var(--coral)}.mday.sel .m{color:var(--ink)}
+.mday.today{border-color:var(--ink)}
+.mday.has{background:var(--panel)}
+.mday:disabled{opacity:.3;cursor:not-allowed}
+.mnav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0}
+.mnav b{font:500 20px var(--display)}
+.dayp{border:1.5px solid var(--ink);padding:14px;margin:12px 0}
+.dp{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid #ddd}
+.dp:first-of-type{border-top:0}.dp .cn{min-width:78px;font-weight:600}
+.dp button{flex:1;min-width:130px;text-align:left}
+.pk{display:flex;flex-direction:column;gap:3px;text-align:left;min-width:168px;flex:1 1 168px;padding:12px}.pk b{font-size:17px;margin-bottom:4px}.eq{display:flex;justify-content:space-between;gap:12px;font-size:14px}.eq i{font-style:normal}.eq u{text-decoration:none;font-variant-numeric:tabular-nums}.eq.tot{font-weight:700;border-top:1.5px solid currentColor;margin-top:4px;padding-top:5px}
+.pv{max-height:110px;max-width:100%;display:block;border:1px solid #ccc;margin-top:6px}
+.crow{border:1.5px solid var(--ink);margin:8px 0;background:#fff}
+.crow>summary{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;list-style:none;min-height:56px}
+.crow>summary::-webkit-details-marker{display:none}
+.crow>summary::after{content:'\25BE';margin-left:4px}.crow[open]>summary::after{content:'\25B4'}
+.crow[open]>summary{border-bottom:1px solid #ddd}
+.crow .info{display:grid;gap:2px;min-width:0;flex:1}.crow .info a{word-break:break-all}
+.crowbody{padding:6px 14px 14px}.gaps{margin:8px 0;padding-left:18px}.gaps li{margin:2px 0}
+.tag{font-size:13px;padding:2px 8px;border:1.5px solid var(--ink)}.tag.ok{background:var(--coral);border-color:var(--coral)}
+
+.tour{border:1.5px solid var(--ink);padding:12px 14px;margin:8px 0;display:grid;gap:6px}
+.tour .when{font-family:var(--display);font-size:20px}
+.tourday{font-family:var(--display);font-size:18px;margin:16px 0 4px;color:var(--mute)}
+/* ---------- cost check (matches culthairpdx.com: ruled grid, Anton caps, Archivo, JetBrains Mono, black + coral) ---------- */
+#ccc{--bg:#FFFFFF;--ink:#111111;--mute:#5A5754;--panel:#EDEBE8;--coral:#FF8A90;
+  --ccd:'Anton','Impact','Arial Narrow',sans-serif;--ccb:'Archivo','Helvetica Neue',Arial,system-ui,sans-serif;--ccm:'JetBrains Mono',ui-monospace,Menlo,monospace}
+#ccc{color:var(--ink);font-family:var(--ccb);font-size:17px;line-height:1.5}
+#ccc *{box-sizing:border-box}
+#ccc .wrap{display:flex;flex-direction:column;gap:20px;padding:0;margin:0}
+#ccc .mono{font-family:var(--ccm);font-weight:500;font-size:13px;letter-spacing:.05em;text-transform:uppercase;margin:0}
+#ccc h2{font-family:var(--ccd);font-weight:400;font-size:clamp(28px,5vw,40px);line-height:.9;letter-spacing:.005em;margin:0;text-transform:uppercase}
+#ccc .lede{max-width:62ch;color:var(--mute);margin:0}
+#ccc .grid{display:grid;grid-template-columns:1fr;gap:20px}
+@media (min-width:860px){#ccc .grid{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}}
+#ccc .panel{background:var(--bg);border:2px solid var(--ink);padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0;margin:0}
+#ccc .f{display:flex;flex-direction:column;gap:6px}
+#ccc .fh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#ccc .fh label{font-family:var(--ccb);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;margin:0;display:block;color:var(--ink);line-height:1.25}
+#ccc .nb{display:flex;align-items:center;gap:2px;border:2px solid var(--ink);background:var(--bg);padding:0 8px;flex:none}
+#ccc .nb span{font-family:var(--ccm);color:var(--mute)}
+#ccc .nb input{width:76px;border:0;background:transparent;color:var(--ink);text-align:right;font-family:var(--ccm);font-size:16px;font-weight:700;height:36px;min-height:0;padding:0}
+#ccc input[type=range]{width:100%;accent-color:var(--ink);border:0;padding:0;min-height:0}
+#ccc .hint{font-size:14px;color:var(--mute)}
+#ccc input:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+#ccc .verdict{border:2px solid var(--ink);padding:18px;display:flex;flex-direction:column;gap:6px;background:var(--panel)}
+#ccc .verdict .big{font-family:var(--ccd);font-size:clamp(36px,7vw,60px);line-height:.9;text-transform:uppercase}
+#ccc .verdict p{margin:0}
+#ccc .v-good{background:var(--coral)}
+#ccc .v-even{background:var(--panel)}
+#ccc .v-bad{background:var(--ink);color:#fff}
+#ccc .v-none{background:var(--panel)}
+#ccc .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:2px solid var(--ink)}
+#ccc .m{background:var(--bg);border:0;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);padding:10px 12px}
+#ccc .m:nth-child(2n){border-right:0}
+#ccc .m:nth-last-child(-n+2){border-bottom:0}
+#ccc .m p{margin:0}
+#ccc .l{font-family:var(--ccm);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+#ccc .v{font-family:var(--ccm);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+#ccc .compress{background:var(--coral);border:2px solid var(--ink);padding:14px}
+#ccc .compress p{margin:0}
+#ccc .sched{display:flex;flex-direction:column;border-top:2px solid var(--ink)}
+#ccc .sr{display:grid;grid-template-columns:68px minmax(0,1fr) auto;gap:8px;padding:9px 0;border-bottom:2px solid var(--ink);font-size:15px;align-items:baseline}
+#ccc .sr .mo{font-family:var(--ccm);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+#ccc .sr .amt{font-family:var(--ccm);font-weight:700;font-variant-numeric:tabular-nums}
+#ccc .sr.skip .what{font-weight:700;background:var(--panel);align-self:start;padding:0 4px}
+#ccc [hidden]{display:none !important}
+#ccc .mode{display:flex;border:2px solid var(--ink)}
+#ccc .mode button{flex:1;font-family:var(--ccb);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em;padding:12px 8px;border:0;border-radius:0;background:var(--bg);color:var(--ink);cursor:pointer;min-height:48px}
+#ccc .mode button+button{border-left:2px solid var(--ink)}
+#ccc .mode button[aria-pressed="true"]{background:var(--ink);color:#fff}
+#ccc .notes{font-size:14px;color:var(--mute);display:flex;flex-direction:column;gap:6px}
+#ccc .notes p{margin:0;max-width:75ch}
+</style></head><body>
+<div class="wrap">
+<header><a href="app.html"><img src="cult-logo.png" alt="Cult"></a><div class="row"><a class="small" href="index.html">website</a><span id="who" class="small"></span><button id="out" class="link hide">log out</button></div></header>
+<main id="app" aria-live="polite"><p class="small" style="margin-top:30px">loading...</p></main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const SB_URL='https://qblpguaqjsqklvteurnk.supabase.co';
+const SB_KEY='sb_publishable_sw1FEEPMV7kWwVnToziXjA_QppsUaQT';
+const AGREEMENT_VERSION='draft-2026-10d';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const S={user:null,prof:null,mem:null,docs:[],agreed:false,balance:0,chairs:[],tab:'book',chair:null,mode:'login',msg:'',err:'',taken:[],mine:[],ledger:[],owner:null,cal:null,ocal:null,wk:0,maxAhead:60};
+try{if(new URLSearchParams(location.search).get('join')==='1')S.mode='signup'}catch(e){}
+const NOW=new Date();
+S.cal={y:NOW.getFullYear(),m:NOW.getMonth(),sel:iso0(NOW)};S.ocal={y:NOW.getFullYear(),m:NOW.getMonth(),sel:iso0(NOW)};
+function iso0(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+const DOCS=[['license','Cosmetology license'],['insurance','Liability insurance'],['contractor','Independent contractor form']];
+const TERMS=`<p><b>Draft stylist terms of use.</b> These are a working draft and will be reviewed by an attorney before launch.</p>
+<p><b>1. Who this is for.</b> Licensed, insured, independent stylists approved by Cult.</p>
+<p><b>2. Membership.</b> Membership is $29 a month and keeps your access active. You can cancel any time. Chair time is bought separately as chair credits.</p>
+<p><b>2a. Price lock.</b> Your monthly membership price will not increase for as long as your membership stays active without interruption. If your membership is canceled, whether you cancel it or it ends because a payment could not be collected, and you later rejoin, you pay the membership price in effect when you rejoin.</p>
+<p><b>3. Chair credits.</b> One chair credit is one dollar of chair time at the standard rate. Packs of 4 days or more cost less per day, so they add more chair credits than the dollars paid. Chair credits never expire. Chair credits are non-refundable and cannot be exchanged for cash. Refunds are given at the owner&rsquo;s discretion for true emergencies, and any refund is based on the dollars you actually paid, not the bank balance. A cancelled booking returns its chair credits to your account.</p>
+<p><b>4. Booking.</b> A morning block is $65, an afternoon block is $65, and a full day is $100. You need an active membership and unexpired license, insurance and contractor documents on the day you book.</p>
+<p><b>5. Cancellations.</b> 24 hours or more before the block: full chair credits back. Inside 24 hours: half back. If you cancel one half of a full day, the half you keep goes back to the regular half-day price. True emergencies can be reviewed for full chair credits back, up to three a year.</p>
+<p><b>6. Access.</b> Door codes work 7 a.m. to 11 p.m. and switch off if membership or documents lapse.</p>
+<p><b>7. Care of the space.</b> Leave the chair, station and shared areas clean. Serious violations may close your account and forfeit chair credits.</p>
+<p><b>8. Payments.</b> There are no late fees or collections. A declined card pauses your membership and access until it is fixed. If it is fixed before your membership is canceled, your locked price stays the same.</p>`;
+const fmt$=n=>'$'+n;
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dayLabel=iso=>new Date(iso+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+function toast(text,isErr){
+  let el=document.getElementById('toast');if(el)el.remove();
+  el=document.createElement('div');el.id='toast';el.setAttribute('role','status');
+  el.style.cssText='position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;z-index:60;padding:14px 16px;border:2px solid #111;font-size:17px;box-shadow:4px 4px 0 #111;background:'+(isErr?'#fff':'var(--coral)')+';color:#111';
+  el.textContent=text;el.onclick=()=>el.remove();document.body.appendChild(el);
+  clearTimeout(window.__tt);window.__tt=setTimeout(()=>{const x=document.getElementById('toast');if(x)x.remove()},7000);
+}
+function note(m,e){S.msg=m||'';S.err=e||'';const x=m||e;if(x)toast(x,!!e)}
+function banner(){return (S.msg?`<div class="msg">${esc(S.msg)}</div>`:'')+(S.err?`<div class="err">${esc(S.err)}</div>`:'')}
+async function run(fn){const y=window.scrollY;try{await fn()}catch(e){note('',e.message||String(e))}await render();requestAnimationFrame(()=>window.scrollTo(0,y))}
+
+async function load(){
+  const {data:{session}}=await sb.auth.getSession();
+  S.user=session?.user||null;
+  if(!S.user){S.prof=null;return}
+  const [p,m,d,a,b,c,st]=await Promise.all([
+    sb.from('profiles').select('*').eq('id',S.user.id).single(),
+    sb.from('memberships').select('*').eq('user_id',S.user.id).single(),
+    sb.from('documents').select('*').eq('user_id',S.user.id).order('created_at',{ascending:false}),
+    sb.from('agreements_accepted').select('id').eq('user_id',S.user.id).limit(1),
+    sb.rpc('credit_balance',{p_user:S.user.id}),
+    sb.from('chairs').select('*').eq('bookable',true).order('id'),
+    sb.from('settings').select('*')]);
+  S.prof=p.data;S.mem=m.data;S.docs=d.data||[];S.agreed=!!(a.data&&a.data.length);S.balance=b.data||0;S.chairs=c.data||[];S.maxAhead=Number(((st.data||[]).find(x=>x.key==='max_days_ahead')||{value:60}).value);
+  S.launched=true;try{const r=await sb.rpc('my_application_launched');if(!r.error&&r.data===false)S.launched=false}catch(e){S.launched=true}
+  if(S.chair==null&&S.chairs[0])S.chair=S.chairs[0].id;
+}
+function docState(kind){
+  const today=iso(new Date());
+  const list=S.docs.filter(d=>d.kind===kind);
+  const ok=list.find(d=>d.status==='verified'&&d.expires_on>=today);
+  if(ok)return ['verified','ok',ok];
+  const pend=list[0]&&list[0].status==='pending'?list[0]:null;  /* only the newest upload counts */
+  if(pend)return ['waiting for review','',pend];
+  if(list[0]&&list[0].status==='rejected')return ['sent back, upload again','',null];
+  if(list.find(d=>d.status==='verified'))return ['expired, upload again','',null];
+  return ['not uploaded','',null];
+}
+const allDocsOk=()=>DOCS.every(([k])=>docState(k)[0]==='verified');
+
+async function render(){
+  $('#who').textContent=S.user?(S.prof?.full_name||S.user.email):'';
+  $('#out').classList.toggle('hide',!S.user);
+  const el=$('#app');
+  if(!S.user){el.innerHTML=authView();bindAuth();return}
+  if(!S.prof){el.innerHTML='<p>Setting up your profile...</p>';return}
+  const isOwner=S.prof.is_admin;
+  const costTab=isOwner&&S.tab==='cost';
+  let h=`<h1>${costTab?'cost check':isOwner?'owner':'your chairs'}.</h1>${banner()}`;
+  h+=isOwner
+    ?`<div class="tabs"><button data-v="own" aria-pressed="${S.tab!=='mine'&&!costTab}">owner</button><button data-v="mine" aria-pressed="${S.tab==='mine'}">stylist view</button><button data-v="cost" aria-pressed="${costTab}">cost check</button></div>`
+    :'';
+  if(costTab){el.innerHTML=h+costCheckHTML();bindTabs();initCostCheck();return}
+  if(isOwner&&S.tab!=='mine'){el.innerHTML=h+'<div id="ownerbox">loading...</div>';bindTabs();await renderOwner();return}
+  h+=await stylistView();
+  el.innerHTML=h;bindTabs();bindStylist();
+}
+function bindTabs(){document.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{S.tab=(b.dataset.v==='own'||b.dataset.v==='main')?'book':b.dataset.v==='cost'?'cost':'mine';note();try{await load()}catch(e){}render()})}
+
+/* ---------- auth ---------- */
+function authView(){
+  const su=S.mode==='signup';
+  return `<h1>${su?'join the cult.':'welcome back.'}</h1>${banner()}
+  <p class="small">Chair time for independent stylists at Cult, Portland.</p>
+  <form id="af" class="card">
+    ${su?'<label>Full name<input id="fn" required autocomplete="name"></label><label>Phone<input id="ph" type="tel" required autocomplete="tel"></label>':''}
+    <label>Email<input id="em" type="email" required autocomplete="email"></label>
+    <label>Password${su?' (8 characters or more)':''}<input id="pw" type="password" required minlength="8" autocomplete="${su?'new-password':'current-password'}"></label>
+    <div class="row"><button class="solid" type="submit">${su?'create account':'log in'}</button>
+    <button type="button" class="link" id="sw">${su?'I already have an account':'had your meet &amp; greet? create your account'}</button></div>
+    ${su?'':'<button type="button" class="link small" id="fp">forgot password</button>'}
+  </form>
+  <p class="small">${su?'Accounts open after your meet &amp; greet, when Sean launches your application. Use the same email you booked with. ':'New stylist? '}<a href="join.html#tour">Book a meet &amp; greet${su?' here':' first'}</a>.</p>`;
+}
+function bindAuth(){
+  try{const em=new URLSearchParams(location.search).get('email');if(em&&$('#em'))$('#em').value=em}catch(x){}
+  $('#sw').onclick=()=>{S.mode=S.mode==='signup'?'login':'signup';note();render()};
+  const fp=$('#fp');if(fp)fp.onclick=()=>run(async()=>{
+    const email=$('#em').value.trim();if(!email)throw new Error('Type your email first.');
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+    if(error)throw error;note('If that email has an account, a reset link is on its way.')});
+  $('#af').onsubmit=e=>{e.preventDefault();run(async()=>{
+    const email=$('#em').value.trim(),password=$('#pw').value;
+    if($('#fn')){
+      try{const ok=await sb.rpc('signup_ok',{addr:email});
+        if(!ok.error&&ok.data===false)throw new Error('No meet & greet on file for this email yet. Book one at culthairpdx.com/join.html#tour. After your tour, Sean launches your application and you can create your account with the same email.')}
+      catch(e){if(/meet & greet/.test(e.message))throw e}
+      const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name:$('#fn').value.trim(),phone:$('#ph').value.trim()}}});
+      if(error)throw error;
+      if(!data.session){S.mode='login';note('Check your email for a confirmation link, then log in.');return}
+      await load();
+      await sb.from('profiles').update({phone:$('#ph').value.trim()}).eq('id',S.user.id);
+    }else{
+      const {error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
+    }
+    await load();note();
+  })};
+}
+$('#out').onclick=async()=>{await sb.auth.signOut();S.user=null;S.prof=null;note();render()};
+sb.auth.onAuthStateChange(async(ev)=>{if(ev==='PASSWORD_RECOVERY'){const p=prompt('Choose a new password (8 or more characters)');if(p&&p.length>=8){const {error}=await sb.auth.updateUser({password:p});note(error?'':'Password updated.',error?error.message:'')}}});
+
+/* ---------- stylist ---------- */
+function docInfo(k){
+  const s=docState(k);const today=iso(new Date());const soon=new Date();soon.setDate(soon.getDate()+30);const soonD=iso(soon);
+  const list=S.docs.filter(d=>d.kind===k);const pendingNew=!!(list[0]&&list[0].status==='pending');
+  const ok=s[0]==='verified';const exp=s[2]?s[2].expires_on:null;
+  const expiring=ok&&exp&&exp<=soonD&&!pendingNew;
+  const needUpload=(!ok&&s[0]!=='waiting for review')||expiring;
+  return {s:s[0],exp,ok,expiring,needUpload};
+}
+async function stylistView(){
+  const p=S.prof,m=S.mem;
+  if(p.status==='paused'||p.status==='closed')return `<div class="card"><h2>Account ${p.status}</h2><p>Please contact Sean to sort this out.</p></div>`;
+  if(!S.launched&&!p.is_admin)return `<div class="card"><h2>Book your Monday meet &amp; greet</h2>
+    <p>The first step is a 30-minute tour on a Monday. You see the room and we go over how booking, chair credits and the terms work. Right after, Sean opens your application and you can accept the terms and upload your documents.</p>
+    <p><a class="btn" href="join.html#tour" style="display:inline-block;text-decoration:none">pick a Monday time</a></p>
+    <p class="small">Already had your tour? Sean opens your application after it. You will get an email, and this screen updates by itself.</p></div>`;
+  if(!S.agreed)return `<div class="card" id="terms"><h2>Stylist terms</h2><p class="small">First, please read and accept the terms.</p><div class="terms">${TERMS}</div>
+    <label style="margin-top:14px;display:flex;gap:10px;align-items:center;color:var(--ink);font-size:17px"><input type="checkbox" id="ag" style="width:24px;min-height:24px"> I have read and agree to the stylist terms.</label>
+    <button class="solid" id="agbtn" disabled>accept and continue</button></div>`;
+  const di={};DOCS.forEach(([k])=>di[k]=docInfo(k));
+  const items=[{ok:true,label:'Stylist terms accepted'}];
+  DOCS.forEach(([k,l])=>{const d=di[k];
+    if(d.ok&&!d.expiring)items.push({ok:true,label:l+' verified, expires '+d.exp});
+    else if(d.expiring)items.push({ok:false,label:l+' expires '+d.exp+'. Upload the new one before then.',fix:'#docs',fixText:'upload new'});
+    else if(d.s==='waiting for review')items.push({ok:false,label:l+' uploaded, waiting for Sean to review'});
+    else items.push({ok:false,label:l+': '+d.s,fix:'#docs',fixText:'upload'})});
+  items.push({ok:p.status==='approved',label:p.status==='approved'?'Approved by Sean':'Approval from Sean (he reviews every stylist by hand)'});
+  items.push({ok:m.status==='active',label:m.status==='active'?'Membership active':m.status==='past_due'?'Membership payment problem. Update your card to keep access.':'Membership ($29 a month)',fix:m.status==='active'?null:'#membership',fixText:'start'});
+  const outstanding=items.some(i=>!i.ok);
+  let h='';
+  if(outstanding){
+    h+=`<div class="card"><h2>${p.status==='approved'&&m.status==='active'?'Needs your attention':'To do before you can book'}</h2><ul style="list-style:none;padding:0;margin:8px 0 0">`+
+      items.map(i=>`<li style="padding:6px 0;display:flex;gap:10px;align-items:baseline;${i.ok?'color:var(--mute)':''}"><span aria-hidden="true">${i.ok?'&#9745;':'&#9744;'}</span><span style="flex:1">${esc(i.label)}</span>${i.fix?`<a href="${i.fix}">${i.fixText}</a>`:''}</li>`).join('')+'</ul></div>';
+  }
+  const needDocs=DOCS.some(([k])=>di[k].needUpload);
+  if(needDocs)h+=docsCard(di);
+  if(p.status==='approved'&&m.status!=='active')h+=`<div class="card" id="membership"><h2>Start your membership</h2><p>$29 a month keeps your access active.</p>
+    <button data-pay="membership|">pay $29 with card</button><p class="small">Secure checkout by Stripe. Cancel any time.</p></div>`;
+  const allOk=DOCS.every(([k])=>di[k].ok);
+  if(allOk&&p.status==='approved'&&m.status==='active')h+=await bookingViews();
+  if(p.status==='approved'&&m.status==='active')h+=`<div class="card" id="memcard"><h2>Membership</h2><p class="small" style="margin:6px 0 12px">$29 a month. Active.</p><button data-managem>manage membership</button></div>`;
+  else if(p.status==='approved'&&allOk)h+='';
+  return h;
+}
+function docsCard(di){
+  return `<div class="card" id="docs"><h2>Your documents</h2><p class="small">Upload a photo or PDF of each. Enter the date it expires. Sean verifies them. You can't book a day your documents have expired.</p>
+  ${DOCS.map(([k,l])=>{const d=di[k];const tagc=d.ok&&!d.expiring?'ok':'';return `<div style="border-top:1px solid #ddd;padding:12px 0"><div class="row" style="justify-content:space-between"><b>${l}</b><span class="tag ${tagc}">${d.expiring?'expires soon':d.s}${d.exp?' · expires '+d.exp:''}</span></div>
+  ${d.needUpload?`<div class="row" style="margin-top:8px"><label style="flex:1;min-width:150px;margin:0">File<input type="file" accept="image/*,.pdf" id="f_${k}"></label><label style="margin:0">New expiry date<input type="date" id="e_${k}"></label><button data-up="${k}">upload</button></div>`:''}</div>`}).join('')}</div>`;
+}
+
+/* ---------- documents pop-up shown when a booking day is past a document's expiry ---------- */
+function docsFor(day){
+  return DOCS.map(([k,l])=>{
+    const list=S.docs.filter(d=>d.kind===k);
+    const good=list.filter(d=>d.status==='verified'&&d.expires_on>=day).sort((x,y)=>x.expires_on<y.expires_on?1:-1)[0];
+    if(good)return {k,l,ok:true,text:'valid through '+good.expires_on};
+    if(list[0]&&list[0].status==='pending')return {k,l,ok:false,need:false,text:'uploaded, waiting for Sean to review'};
+    if(list[0]&&list[0].status==='rejected')return {k,l,ok:false,need:true,text:'Sean sent this back. Please upload it again.'};
+    const old=list.filter(d=>d.status==='verified').sort((x,y)=>x.expires_on<y.expires_on?1:-1)[0];
+    if(old)return {k,l,ok:false,need:true,text:'expires '+old.expires_on+', before '+dayLabel(day)};
+    return {k,l,ok:false,need:true,text:'not uploaded yet'};
+  });
+}
+function closeMemModal(){const m=document.getElementById('memmodal');if(m)m.remove()}
+const fmtEnd=sec=>sec?new Date(sec*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'the end of this month';
+async function memCall(action){
+  const {data:ss}=await sb.auth.getSession();
+  const r=await fetch(SB_URL+'/functions/v1/stripe-manage',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+ss.session.access_token},body:JSON.stringify({action})});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||'Something went wrong. Please try again.');return j;
+}
+function showManageModal(){
+  closeMemModal();
+  const o=document.createElement('div');o.id='memmodal';
+  o.style.cssText='position:fixed;inset:0;background:rgba(17,17,17,.65);z-index:50;overflow:auto;padding:16px';
+  document.body.appendChild(o);
+  o.onclick=e=>{if(e.target===o)closeMemModal()};
+  let info=null;
+  const box=h=>{o.innerHTML=`<div role="dialog" aria-modal="true" style="background:#fff;border:2px solid var(--ink);max-width:520px;margin:24px auto;padding:20px">${h}</div>`};
+  const on=(sel,fn)=>{const b=o.querySelector(sel);if(b)b.onclick=fn};
+  const guard=fn=>async()=>{try{await fn()}catch(e){toast(e.message||String(e),true)}};
+  const busy=(b,t)=>{if(b){b.disabled=true;b.textContent=t||'working…'}};
+  const home=()=>{
+    const end=fmtEnd(info.ends_on);
+    if(info.cancel_at_period_end){
+      box(`<h2>Your membership</h2><p>It is set to end on <b>${esc(end)}</b>. Until then everything works as usual, and your chair credits stay in your account.</p>
+        <div class="row" style="margin-top:14px"><button class="solid" id="mkeep">keep my membership</button><button id="mclose">close</button></div>`);
+      on('#mkeep',guard(async()=>{busy(o.querySelector('#mkeep'));info=await memCall('resume');await load();note('Welcome back. Your membership will keep renewing.');closeMemModal();render()}));
+    }else{
+      box(`<h2>Your membership</h2><p>$29 a month. Active. Renews on <b>${esc(fmtEnd(info.renews_on))}</b>.</p>
+        <div class="row" style="margin-top:14px"><button id="mgo">cancel membership</button><button class="solid" id="mclose">close</button></div>`);
+      on('#mgo',step1);
+    }
+    on('#mclose',closeMemModal);
+  };
+  const step1=()=>{
+    box(`<h2>Cancel your membership?</h2>
+      <ul style="margin:8px 0 0;padding-left:20px"><li>It stays active until <b>${esc(fmtEnd(info.renews_on))}</b>, the end of the month you already paid for.</li>
+      <li>After that you cannot book new days, and door codes switch off, until you restart.</li>
+      <li>Your chair credits stay in your account and never expire.</li></ul>
+      <div class="row" style="margin-top:16px"><button class="solid" id="mno">keep my membership</button><button id="myes">continue</button></div>`);
+    on('#mno',closeMemModal);on('#myes',step2);
+  };
+  const step2=()=>{
+    box(`<h2>Are you sure?</h2><p>This will stop your membership from renewing.</p>
+      <div class="row" style="margin-top:16px"><button class="solid" id="mno">no, keep it</button><button id="myes">yes, I'm sure</button></div>`);
+    on('#mno',closeMemModal);on('#myes',step3);
+  };
+  const step3=()=>{
+    box(`<h2>Are you sure sure?</h2><p>Like cross-your-heart, no-take-backs-until-you-press-the-button sure? Your chair will miss you. (It is a chair. It cannot. But still.)</p>
+      <div class="row" style="margin-top:16px"><button class="solid" id="mno">ok fine, keep it</button><button id="mfinal">cancel my membership</button></div>`);
+    on('#mno',closeMemModal);
+    on('#mfinal',guard(async()=>{
+      busy(o.querySelector('#mfinal'));
+      info=await memCall('cancel');
+      await load();
+      box(`<h2>Done</h2><p>Your membership will end on <b>${esc(fmtEnd(info.ends_on))}</b>. Until then everything works as usual, and your chair credits are safe. You can change your mind any time before then from Manage membership.</p>
+        <div class="row" style="margin-top:14px"><button class="solid" id="mclose">close</button></div>`);
+      on('#mclose',()=>{closeMemModal();render()});
+    }));
+  };
+  box('<p>Loading…</p>');
+  memCall('status').then(r=>{info=r;home()}).catch(e=>{closeMemModal();toast(e.message||String(e),true)});
+}
+function closeDocsModal(){const m=document.getElementById('docmodal');if(m)m.remove()}
+function showDocsModal(day,msg){
+  closeDocsModal();
+  const items=docsFor(day);
+  const o=document.createElement('div');o.id='docmodal';
+  o.style.cssText='position:fixed;inset:0;background:rgba(17,17,17,.65);z-index:50;overflow:auto;padding:16px';
+  o.innerHTML=`<div role="dialog" aria-modal="true" aria-labelledby="dmt" style="background:#fff;border:2px solid var(--ink);max-width:520px;margin:24px auto;padding:20px">
+    <h2 id="dmt">Before you can book ${esc(dayLabel(day))}</h2>
+    <p class="small" style="margin:8px 0 12px">All three documents must be verified and still valid on the day you book.</p>
+    ${msg?`<div class="msg">${esc(msg)}</div>`:''}
+    <ul style="list-style:none;padding:0;margin:0">${items.map(i=>`<li style="border-top:1px solid #ddd;padding:12px 0">
+      <div style="display:flex;gap:10px;align-items:baseline"><span aria-hidden="true">${i.ok?'&#9745;':'&#9744;'}</span><span style="flex:1"><b>${esc(i.l)}</b><br><span class="small" ${i.ok?'style="color:var(--mute)"':''}>${esc(i.text)}</span></span></div>
+      ${i.need?`<div class="row" style="margin-top:10px"><label style="flex:1;min-width:150px;margin:0">File<input type="file" accept="image/*,.pdf" id="mf_${i.k}"></label><label style="margin:0">New expiry date<input type="date" id="me_${i.k}"></label><button data-mup="${i.k}">upload</button></div>`:''}</li>`).join('')}</ul>
+    <div class="row" style="margin-top:14px"><button class="solid" id="dmclose">close</button></div>
+    <p class="small" style="margin-top:10px">After you upload, Sean reviews it. You can book that day once it is verified.</p></div>`;
+  document.body.appendChild(o);
+  o.querySelector('#dmclose').onclick=closeDocsModal;
+  o.onclick=e=>{if(e.target===o)closeDocsModal()};
+  o.querySelectorAll('[data-mup]').forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.mup,f=document.getElementById('mf_'+k).files[0],e=document.getElementById('me_'+k).value;
+    try{
+      if(!f)throw new Error('Choose a file first.');if(!e)throw new Error('Enter the expiry date.');
+      if(f.size>10*1024*1024)throw new Error('That file is over 10 MB.');
+      if(e<iso(new Date()))throw new Error('That date has already passed.');
+      const ext=(f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const path=`${S.user.id}/${k}-${Date.now()}.${ext}`;
+      const up=await sb.storage.from('documents').upload(path,f,{contentType:f.type});if(up.error)throw up.error;
+      const {error}=await sb.from('documents').insert({user_id:S.user.id,kind:k,file_path:path,expires_on:e});if(error)throw error;
+      await upDone(b);
+      await load();showDocsModal(day,'✓ Uploaded. Sean will review it.');render();
+    }catch(err){showDocsModal(day,err.message||String(err))}
+  });
+}
+
+/* press feedback for every button; slow actions show 'working...' until the screen refreshes */
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;
+  b.classList.remove('pressed');void b.offsetWidth;b.classList.add('pressed');
+  if(b.matches('[data-up],[data-mup]')){
+    const k=b.dataset.up||b.dataset.mup;const fi=document.getElementById((b.dataset.up?'f_':'mf_')+k);
+    if(!fi||!fi.files[0])return;  /* nothing chosen: let the error message show instead */
+    setTimeout(()=>{if(document.contains(b)){b.classList.add('uploading');b.textContent='uploading\u2026 please wait'}},0);
+  }else if(b.matches('[data-book],[data-pay]')){
+    setTimeout(()=>{if(document.contains(b)&&!b.disabled){b.classList.add('busy');b.textContent='working\u2026'}},0);
+  }
+},true);
+/* after a file is chosen, show a green check with its name so people know it took */
+document.addEventListener('change',e=>{
+  const i=e.target;if(!i||!i.matches||!i.matches('input[type=file]'))return;
+  const lab=i.closest('label');if(!lab)return;
+  let h=lab.querySelector('.fh');if(!h){h=document.createElement('span');h.className='fh';lab.appendChild(h)}
+  h.textContent=i.files[0]?'\u2713 '+i.files[0].name+' is ready':'';
+});
+function upDone(b){b.classList.remove('uploading');b.classList.add('done');b.textContent='\u2713 uploaded!';return new Promise(r=>setTimeout(r,1100))}
+function bindStylist(){
+  const ag=$('#ag');if(ag){ag.onchange=()=>$('#agbtn').disabled=!ag.checked;
+    $('#agbtn').onclick=()=>run(async()=>{const {error}=await sb.from('agreements_accepted').insert({user_id:S.user.id,version:AGREEMENT_VERSION});if(error)throw error;await load();note('Thank you. Now upload your documents.')})}
+  document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>run(async()=>{
+    const k=b.dataset.up,f=$('#f_'+k).files[0],e=$('#e_'+k).value;
+    if(!f)throw new Error('Choose a file first.');if(!e)throw new Error('Enter the expiry date.');
+    if(f.size>10*1024*1024)throw new Error('That file is over 10 MB.');
+    if(e<iso(new Date()))throw new Error('That date has already passed.');
+    const ext=(f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const path=`${S.user.id}/${k}-${Date.now()}.${ext}`;
+    const up=await sb.storage.from('documents').upload(path,f,{contentType:f.type});if(up.error)throw up.error;
+    const {error}=await sb.from('documents').insert({user_id:S.user.id,kind:k,file_path:path,expires_on:e});if(error)throw error;
+    await upDone(b);
+    await load();note('✓ Uploaded. Sean will review it.')}));
+  document.querySelectorAll('[data-managem]').forEach(b=>b.onclick=showManageModal);
+  document.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>run(async()=>{
+    const [kind,pack]=b.dataset.pay.split('|');
+    const {data:ss}=await sb.auth.getSession();
+    const r=await fetch(SB_URL+'/functions/v1/stripe-checkout',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+ss.session.access_token},body:JSON.stringify({kind,pack})});
+    const j=await r.json();if(!r.ok||!j.url)throw new Error(j.error||'Could not start checkout.');
+    location.href=j.url}));
+  bindCal();
+  document.querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>run(async()=>{
+    const [c,d,blk]=b.dataset.book.split('|');
+    await load();  /* pick up anything Sean just changed, like a document sent back */
+    if(docsFor(d).some(x=>!x.ok)){showDocsModal(d);return}
+    const price=Number(b.dataset.price||65);
+    if(S.balance<price){note('','That time costs $'+price+' and your credit bank has $'+S.balance+'. Add credits above, then try again.');return}
+    const {error}=await sb.rpc('book_chair',{p_chair:Number(c),p_day:d,p_block:blk});
+    if(error){if(/documents/i.test(error.message||'')){showDocsModal(d);return}throw error}
+    await load();note('Booked: chair '+c+', '+dayLabel(d)+', '+(blk==='AM'?'morning':'afternoon')+'. $'+price+' taken from your chair credits.')}));
+  document.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>{
+    const cost=Number(b.dataset.cost),la0=new Date().toLocaleString('sv-SE',{timeZone:'America/Los_Angeles'}).replace(' ','T').slice(0,16);
+    const st=b.dataset.day+'T'+(b.dataset.blk==='AM'?'09:00':'15:15'),en=b.dataset.day+'T'+(b.dataset.blk==='AM'?'14:45':'21:00');
+    const hrs=(new Date(st+':00Z')-new Date(la0+':00Z'))/3600000;
+    const sib=b.dataset.sib===''?null:Number(b.dataset.sib),HALF=65;
+    let refund,extra='';
+    if(en<=la0)refund=0;
+    else if(sib!==null){ /* other half of this day is still booked: the half you keep goes back to $65 */
+      refund=Math.max(0,cost+sib-2*HALF+(hrs>=24?HALF:Math.round(HALF*0.5)));
+      extra=' The half you keep goes back to the regular $'+HALF+' price, because it is no longer part of a full day.'}
+    else refund=hrs>=24?cost:Math.round(cost*0.5);
+    const why=en<=la0?'That time has already passed, so nothing comes back.':hrs>=24?'That is more than 24 hours ahead, so you get all of it back.':'That is inside 24 hours, so only half comes back.';
+    const msg=(sib!==null&&en>la0)
+      ?'Cancel this half-day?\n\nYou paid $'+(cost+sib)+' for the full day. The half you keep goes back to the regular $'+HALF+' price, so you would get $'+refund+' back in chair credits.'+(hrs>=24?'':' That is inside 24 hours, so only half of the cancelled half comes back.')
+      :'Cancel this booking?\n\nYou paid $'+cost+' and would get $'+refund+' back in chair credits. '+why;
+    if(!confirm(msg))return;run(async()=>{
+    const {data,error}=await sb.rpc('cancel_booking',{p_booking:b.dataset.cancel});if(error)throw error;await load();note('Cancelled. '+data+' chair credits returned.')})});
+}
+const mkey=(y,m)=>y*12+m;
+function monthGrid(scope,st,minD,maxD,mark){
+  const first=new Date(st.y,st.m,1),lead=first.getDay(),n=new Date(st.y,st.m+1,0).getDate();
+  const title=first.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const mn=new Date(minD+'T12:00:00'),mx=new Date(maxD+'T12:00:00');
+  const prevOk=mkey(st.y,st.m)>mkey(mn.getFullYear(),mn.getMonth()),nextOk=mkey(st.y,st.m)<mkey(mx.getFullYear(),mx.getMonth());
+  const today=iso(new Date());
+  let h=`<div class="mnav"><button data-mnav="${scope}|-1" ${prevOk?'':'disabled'} aria-label="previous month">&larr;</button><b>${title}</b><button data-mnav="${scope}|1" ${nextOk?'':'disabled'} aria-label="next month">&rarr;</button></div><div class="mgrid">`;
+  h+=['S','M','T','W','T','F','S'].map(x=>`<div class="wd">${x}</div>`).join('');
+  for(let i=0;i<lead;i++)h+='<div></div>';
+  for(let d=1;d<=n;d++){const ds=st.y+'-'+String(st.m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const off=ds<minD||ds>maxD;const mk=off?'':mark(ds);
+    h+=`<button class="mday ${ds===st.sel?'sel':''} ${ds===today?'today':''} ${mk?'has':''}" data-cal="${scope}|${ds}" ${off?'disabled':''}><span>${d}</span><span class="m">${mk||''}</span></button>`}
+  return h+'</div>';
+}
+function weekOf(offset){const d=new Date();const dow=(d.getDay()+6)%7;d.setDate(d.getDate()-dow+offset*7);return [...Array(7)].map((_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return iso(x)})}
+async function bookingViews(){
+  const today=iso(new Date());const end=new Date();end.setDate(end.getDate()+S.maxAhead);const maxD=iso(end);
+  const [t,mb,lg]=await Promise.all([sb.rpc('taken_slots',{p_from:today,p_to:maxD}),
+    sb.from('bookings').select('*').eq('user_id',S.user.id).order('day'),
+    sb.from('credit_ledger').select('*').eq('user_id',S.user.id).order('created_at',{ascending:false}).limit(30)]);
+  const la=new Date().toLocaleString('sv-SE',{timeZone:'America/Los_Angeles'}).replace(' ','T').slice(0,16);
+  const ended=(ds,b)=>(ds+'T'+(b==='AM'?'14:45':'21:00'))<=la;
+  const taken=new Set((t.data||[]).map(x=>`${x.chair_id}|${x.day}|${x.block}`));
+  const mine=(mb.data||[]).filter(b=>b.status==='booked');
+  const mineSet=new Set(mine.map(b=>`${b.chair_id}|${b.day}|${b.block}`));
+  const mineDays={};mine.forEach(b=>{(mineDays[b.day]=mineDays[b.day]||[]).push(b)});
+  const lab=b=>b==='AM'?'morning':'afternoon';
+  let h=`<div class="card"><p class="small" style="margin:0">chair credit bank</p><div class="bank">${fmt$(S.balance)}</div>
+   <p class="small"><b>Bonus</b> is extra we add when you buy bigger packs. A full day is $100 and a half day is $65, taken from your bank. Your bank never expires and is non-refundable. Any refund (at the owner&rsquo;s discretion) is based on what you actually paid.</p>
+   <p class="small" style="margin:12px 0 6px"><b>Add chair credits</b></p>
+   <div style="display:flex;flex-wrap:wrap;gap:10px">${[['half','Half day',65,65],['day','1 day',100,100],['d4','4 days',380,400],['d7','7 days',630,700],['d14','14 days',1190,1400],['d20','20 days',1500,2000]].map(x=>{const m=n=>'$'+n.toLocaleString('en-US'),bn=x[3]-x[2];return `<button class="pk" data-pay="credits|${x[0]}"><b>${x[1]}</b><span class="eq"><i>You pay</i><u>${m(x[2])}</u></span>${bn?`<span class="eq"><i>+ Bonus</i><u>${m(bn)}</u></span>`:''}<span class="eq tot"><i>= In your bank</i><u>${m(x[3])}</u></span></button>`}).join('')}</div>
+   <p class="small" style="margin-top:8px">The more days you buy, the less each day costs. Secure checkout by Stripe.</p></div>`;
+  // week overview
+  const wk=weekOf(S.wk);
+  const wl=new Date(wk[0]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})+' to '+new Date(wk[6]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  h+=`<h2>My week</h2><div class="mnav"><button data-wk="-1" aria-label="previous week">&larr;</button><b style="font-size:18px">${wl}</b><button data-wk="1" aria-label="next week">&rarr;</button></div><div class="card" style="padding:6px 14px">`+
+    wk.map(ds=>{const bs=mineDays[ds]||[];return `<div class="dp"><span class="cn">${dayLabel(ds)}${ds===today?' <span class="tag ok">today</span>':''}</span><span style="flex:1">${bs.length?bs.map(b=>`chair ${b.chair_id} · ${lab(b.block)}`).join(', '):'<span class="small">not scheduled</span>'}</span></div>`}).join('')+'</div>';
+  // month calendar + day panel
+  h+=`<h2>Book a chair</h2><p class="small">Morning $65 &middot; afternoon $65 &middot; whole day $100. Pick a day, then a chair. You can book up to ${S.maxAhead} days ahead.</p>`;
+  h+=monthGrid('c',S.cal,today,maxD,ds=>{const n=(mineDays[ds]||[]).length;return n?`${n} booked`:''});
+  const sel=S.cal.sel;
+  if(sel&&sel>=today&&sel<=maxD){
+    h+=`<div class="dayp"><b>${dayLabel(sel)}</b>`+S.chairs.map(c=>`<div class="dp"><span class="cn">${esc(c.name)}</span>`+['AM','PM'].map(b=>{const key=`${c.id}|${sel}|${b}`;
+      if(mineSet.has(key))return `<button disabled class="blk mine">${lab(b)} · yours</button>`;
+      if(ended(sel,b))return `<button disabled>${lab(b)} · passed</button>`;
+      if(taken.has(key))return `<button disabled>${lab(b)} · taken</button>`;
+      const other=b==='AM'?'PM':'AM';const price=mineSet.has(`${c.id}|${sel}|${other}`)?35:65;
+      return `<button data-book="${c.id}|${sel}|${b}" data-price="${price}">${lab(b)} &middot; $${price}${price===35?'<br><span class="small">completes your day</span>':''}</button>`}).join('')+'</div>').join('')+'</div>';
+  }else h+='<p class="small">Tap a day above to see the chairs.</p>';
+  const up=mine.filter(b=>b.day>=today);
+  h+=`<h2>My bookings</h2>`+(up.length?`<table>${up.map(b=>`<tr><td>${dayLabel(b.day)}</td><td>chair ${b.chair_id} · ${lab(b.block)}</td><td>${fmt$(b.cost)}</td><td><button data-cancel="${b.id}" data-day="${b.day}" data-blk="${b.block}" data-cost="${b.cost}" data-sib="${(()=>{const s=up.find(x=>x.id!==b.id&&x.chair_id===b.chair_id&&x.day===b.day);return s?s.cost:''})()}">cancel</button></td></tr>`).join('')}</table>`:'<p class="small">Nothing booked yet.</p>');
+  h+=`<h2>Chair credit history</h2>`+((lg.data||[]).length?`<table>${lg.data.map(r=>`<tr><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${esc(r.reason)}</td><td style="text-align:right">${r.amount>0?'+':''}${r.amount}</td></tr>`).join('')}</table>`:'<p class="small">No activity yet.</p>');
+  return h;
+}
+function bindCal(){
+  document.querySelectorAll('[data-cal]').forEach(b=>b.onclick=()=>{const [sc,ds]=b.dataset.cal.split('|');(sc==='c'?S.cal:S.ocal).sel=ds;render()});
+  document.querySelectorAll('[data-mnav]').forEach(b=>b.onclick=()=>{const [sc,d]=b.dataset.mnav.split('|');const st=sc==='c'?S.cal:S.ocal;const x=new Date(st.y,st.m+Number(d),1);st.y=x.getFullYear();st.m=x.getMonth();st.sel=iso0(x);render()});
+  document.querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{S.wk+=Number(b.dataset.wk);render()});
+}
+
+function costCheckHTML(){return `<section id="ccc"><div class="wrap">
+  <p class="lede">Enter what a stylist pays now and how they really work. It compares their rent with Cult using real pack prices, the $29 membership and credits that roll over, then plans what to buy and when.</p>
+  <div class="grid">
+    <form class="panel" id="ccc-form" novalidate>
+      <h2>their setup</h2>
+      <div class="mode" role="group" aria-label="what to start from"><button type="button" id="ccc-mrent" aria-pressed="true">compare to rent</button><button type="button" id="ccc-mbud" aria-pressed="false">start from my budget</button></div>
+      <div id="ccc-fields" style="display:flex;flex-direction:column;gap:14px"></div>
+      <span class="hint" id="ccc-hint">Drag a slider or tap a number to type it. <b>Compare to rent</b> sets their rent against Cult. <b>Start from my budget</b> takes what they want to spend a month, builds the cheapest plan for the days they picked, and if that does not fit, shows how many days the budget buys.</span>
+    </form>
+    <section class="panel" aria-live="polite">
+      <div class="verdict" id="ccc-vd"><p class="mono" id="ccc-vl">average per month</p><span class="big" id="ccc-vb">—</span><p id="ccc-vt"></p></div>
+      <div class="g2">
+        <div class="m"><p class="l" id="ccc-lmr">Their rent / month</p><p class="v" id="ccc-mr"></p></div>
+        <div class="m"><p class="l">Cult, average / month</p><p class="v" id="ccc-mc"></p></div>
+        <div class="m"><p class="l">Full day rate</p><p class="v" id="ccc-fr"></p></div>
+        <div class="m"><p class="l">Half day rate</p><p class="v" id="ccc-hr"></p></div>
+        <div class="m"><p class="l" id="ccc-lkr">Kept / month, rent</p><p class="v" id="ccc-kr"></p></div>
+        <div class="m"><p class="l" id="ccc-lkc">Kept / month, Cult</p><p class="v" id="ccc-kc"></p></div>
+      </div>
+      <div class="compress" id="ccc-cp" hidden></div>
+      <h2>best buying plan</h2>
+      <p class="hint" style="margin:0">The cheapest mix of real packs that covers exactly the period you choose. The bank never expires, so each pack is bought only when the balance is about to run short.</p>
+      <div class="g2">
+        <div class="m"><p class="l">Paid for packs, whole period</p><p class="v" id="ccc-pt"></p></div>
+        <div class="m"><p class="l">Plus membership</p><p class="v" id="ccc-pm"></p></div>
+        <div class="m"><p class="l">Total at Cult</p><p class="v" id="ccc-ct"></p></div>
+        <div class="m"><p class="l" id="ccc-lrt">Total rent, same period</p><p class="v" id="ccc-rt"></p></div>
+      </div>
+      <p class="hint" style="margin:0" id="ccc-sum"></p>
+      <div class="sched" id="ccc-sched"></div>
+      <div class="notes">
+        <p>Real prices only: half day $65, 1 day $100, 4 days $380 ($95/day), 7 days $630 ($90), 14 days $1,190 ($85), 20 days $1,500 ($75). Membership $29 a month. A full day takes $100 out of the bank; a half day takes $65. Bigger packs put more in the bank than they cost (the bonus). The plan starts with the free day ($100 in the bank) given after approval and the first membership payment. Full and half day rates shown are what the plan really pays per day.</p>
+        <p>Income figures are estimates before product, taxes and insurance.</p>
+      </div>
+    </section>
+  </div>
+</div></section>
+`}
+function initCostCheck(){
+  const F=[['m','Plan length (months)',1,24,1,12,''],['r','Rent per month',0,2500,10,1350,'$'],['f','Full days a week',0,6,0.5,0.5,''],['h','Half days a week',0,12,1,4,''],['o','Weeks off a year',0,12,1,4,''],['c','Clients per full day',1,14,1,7,''],['ch','Clients per half day',0,8,1,3,''],['t','Average ticket',20,300,5,90,'$'],['b','Monthly budget (all-in, with the $29)',0,2000,10,800,'$']];
+  const $=i=>document.getElementById('ccc-'+i);
+  if(!$('fields'))return;
+  $('fields').innerHTML=F.map(([id,lab,mn,mx,st,v,pre])=>'<div class="f" id="ccc-w-'+id+'"><div class="fh"><label for="ccc-'+id+'n">'+lab+'</label><div class="nb">'+(pre?'<span>'+pre+'</span>':'')+'<input type="number" id="ccc-'+id+'n" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'" inputmode="decimal"></div></div><input type="range" id="ccc-'+id+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'" aria-label="'+lab+'"></div>').join('');
+  const PK=[{n:'20-day pack',c:2000,p:1500},{n:'14-day pack',c:1400,p:1190},{n:'7-day pack',c:700,p:630},{n:'4-day pack',c:400,p:380},{n:'1 day',c:100,p:100},{n:'half day',c:65,p:65}];
+  const MEM=29,FREE=100;
+  const money=v=>(v<0?'−':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-US');
+  const val=id=>{const v=parseFloat($(id+'n').value);return isNaN(v)?0:Math.max(0,v)};
+  F.forEach(([id])=>{$(id).addEventListener('input',()=>{$(id+'n').value=$(id).value;go()});$(id+'n').addEventListener('input',()=>{const v=$(id+'n').value;if(v!=='')$(id).value=v;go()})});
+  $('form').addEventListener('submit',e=>e.preventDefault());
+  let mode='rent';
+  function setMode(m){mode=m;$('mrent').setAttribute('aria-pressed',m==='rent');$('mbud').setAttribute('aria-pressed',m==='bud');$('w-r').hidden=m==='bud';$('w-b').hidden=m==='rent';go()}
+  $('mrent').onclick=()=>setMode('rent');$('mbud').onclick=()=>setMode('bud');
+  // Cheapest set of packs whose credits cover `need` (unbounded knapsack, 5-credit steps).
+  function cover(need,packs){const U=Math.ceil(Math.max(0,need)/5);if(!U)return{cost:0,cr:0,list:[]};
+    const X=U+400,C=new Float64Array(X+1).fill(Infinity),K=new Int8Array(X+1).fill(-1);C[0]=0;
+    for(let u=1;u<=X;u++)for(let i=0;i<packs.length;i++){const k=packs[i].c/5;if(u>=k&&C[u-k]+packs[i].p<C[u]){C[u]=C[u-k]+packs[i].p;K[u]=i}}
+    let b=U;for(let u=U;u<=X;u++)if(C[u]<C[b])b=u;if(!isFinite(C[b]))return null;
+    const list=[];let u=b;while(u>0){const i=K[u];list.push(packs[i]);u-=packs[i].c/5}
+    list.sort((a,b)=>b.c-a.c);return{cost:C[b],cr:b*5,list}}
+  // Buy each pack only when the balance would not cover the coming month.
+  function schedule(list,N,months){let bal=FREE,i=0;const rows=[];
+    for(let mth=0;mth<months;mth++){const bought=[];while(bal<N&&i<list.length){bal+=list[i].c;bought.push(list[i]);i++}
+      rows.push({bought,after:bal-N});bal-=N}
+    return rows}
+  function credits(f,h,w){return Math.round((f*100+h*65)*w)}
+  function plan(N,months,cap){const packs=PK.filter(p=>!cap||p.p<=cap);const need=Math.max(0,N*months-FREE);return cover(need,packs.length?packs:PK.slice(-1))}
+  function go(){
+    const bud=mode==='bud';
+    const months=Math.min(24,Math.max(1,Math.round(val('m')))),r=val('r'),f=val('f'),h=val('h'),o=Math.min(51,val('o')),c=val('c'),ch=val('ch'),t=val('t'),B=val('b');
+    const w=(52-o)/12,N=credits(f,h,w),mem=MEM*months,per=months===1?'':'s';
+    const v=$('vd');
+    let useN=N,pl=plan(N,months,0),nmax=0,fits=true;
+    if(bud){
+      const room=B*months-mem;
+      const costFor=n=>{const q=plan(n,months,0);return q?q.cost:Infinity};
+      if(room>=0){let lo=0,hi=4000;while(lo<hi){const mid=Math.ceil((lo+hi)/2);if(costFor(mid)<=room)lo=mid;else hi=mid-1}nmax=lo}
+      fits=N>0&&(pl?pl.cost:0)<=room;
+      useN=fits?N:nmax;pl=plan(useN,months,0);
+    }
+    const packCost=pl?pl.cost:0,total=packCost+mem,avg=total/months,rentT=r*months;
+    $('vl').textContent='over '+months+' month'+per+', average per month';
+    if(!bud){
+      const d=r-avg,pc=r?Math.abs(d)/r:0;
+      if(f+h===0){v.className='verdict v-none';$('vb').textContent='add their days';$('vt').textContent='Set full or half days a week.'}
+      else if(d>0&&pc>=.05){v.className='verdict v-good';$('vb').textContent=money(d)+' less a month';$('vt').textContent=money(rentT-total)+' less over '+months+' month'+per+', with no lease and no paying for weeks off.'}
+      else if(pc<.05){v.className='verdict v-even';$('vb').textContent='about even';$('vt').textContent='Within '+money(Math.abs(d))+' a month, plus no lease, no paying for weeks off, and room to add days.'}
+      else{v.className='verdict v-bad';$('vb').textContent=money(-d)+' more a month';$('vt').textContent='At this many days, a classic chair is the better deal.'}
+    }else{
+      const fd=useN/100;
+      if(B*months<mem){v.className='verdict v-bad';$('vb').textContent='under the $29';$('vt').textContent='The membership alone is $29 a month, so this budget cannot cover Cult.'}
+      else if(N===0){v.className='verdict v-even';$('vb').textContent='about '+fd.toFixed(1)+' full days a month';$('vt').textContent='That is the most chair time '+money(B)+' a month buys, including the $29 membership. Set their days to see how their schedule fits.'}
+      else if(fits){const sp=B-avg;v.className='verdict v-good';$('vb').textContent=sp>=5?money(sp)+' to spare a month':'right on budget';$('vt').textContent='Their days cost about '+money(avg)+' a month at Cult, inside the '+money(B)+' budget.'}
+      else{v.className='verdict v-bad';$('vb').textContent='over by '+money(Math.max(0,total_for(N,months)/months-B))+' a month';$('vt').textContent='Their days would cost about '+money(total_for(N,months)/months)+' a month. '+money(B)+' buys about '+fd.toFixed(1)+' full days a month, and the plan below is built for that.'}
+    }
+    $('lmr').textContent=bud?'Your budget / month':'Their rent / month';
+    $('lkr').textContent=bud?'Full days in plan / month':'Kept / month, rent';
+    $('lrt').textContent=bud?'Total budget, same period':'Total rent, same period';
+    const rateDay=pl&&pl.cr?packCost/pl.cr*100:100;
+    $('mr').textContent=money(bud?B:r);$('mc').textContent=money(avg);$('fr').textContent=money(rateDay);$('hr').textContent=money(rateDay*0.65);
+    const ratio=bud&&N>0?useN/N:1;
+    const inc=(f*c+h*ch)*w*t*ratio;
+    $('kr').textContent=bud?(useN/100).toFixed(1):money(inc-r);$('kc').textContent=money(inc-avg);
+    $('pt').textContent=money(packCost);$('pm').textContent=money(mem);$('ct').textContent=money(total);$('rt').textContent=money(bud?B*months:rentT);
+    const cp=$('cp');
+    if(!bud&&h>=2){const f2=f+Math.floor(h/2),h2=h%2,N2=credits(f2,h2,w),p2=plan(N2,months,0),avg2=((p2?p2.cost:0)+mem)/months,save=avg-avg2;
+      cp.hidden=false;cp.innerHTML='<p class="mono">same hours, fewer days</p><p style="margin-top:4px"><strong>As '+f2+' full day'+(f2===1?'':'s')+(h2?' + 1 half day':'')+' a week: '+money(avg2)+' a month.</strong> That saves '+money(save)+' a month ('+money(save*months)+' over '+months+' months) and frees '+Math.floor(h/2)+' day'+(Math.floor(h/2)===1?'':'s')+' a week. A full day takes $100 out of the bank; two half days take $130.</p>';}
+    else{cp.hidden=true;cp.innerHTML=''}
+    if(!useN||!pl){$('sum').textContent='';$('sched').innerHTML='';return}
+    const rows=schedule(pl.list,useN,months),buys=pl.list.length,skips=rows.filter(x=>!x.bought.length).length,left=pl.cr+FREE-useN*months;
+    const mix={};pl.list.forEach(p=>mix[p.n]=(mix[p.n]||0)+1);
+    const dayTxt=bud?'About '+(useN/100).toFixed(1)+' full days a month ($'+useN.toLocaleString('en-US')+' out of the bank)':'About '+((f+h/2)*w).toFixed(1)+' days a month ($'+useN.toLocaleString('en-US')+' out of the bank)';
+    $('sum').textContent=dayTxt+'. Best mix for '+months+' month'+per+': '+Object.entries(mix).map(([n,q])=>q+' × '+n).join(' + ')+'. '+buys+' purchase'+(buys===1?'':'s')+(skips?', '+skips+' month'+(skips===1?'':'s')+' with nothing to buy':'')+'. '+(left>=5?'$'+left.toLocaleString('en-US')+' left in the bank at the end, which rolls forward.':'Ends with nothing left over.');
+    $('sched').innerHTML=rows.map((x,i)=>{const cost=x.bought.reduce((a,p)=>a+p.p,0);const g={};x.bought.forEach(p=>g[p.n]=(g[p.n]||0)+1);
+      return '<div class="sr'+(x.bought.length?'':' skip')+'"><span class="mo">month '+(i+1)+'</span><span class="what">'+(x.bought.length?'Buy '+Object.entries(g).map(([n,q])=>q+' × '+n).join(' + '):'Nothing to buy: the bank covers it')+' · '+'$'+x.after.toLocaleString('en-US')+' left in the bank</span><span class="amt">'+(cost?money(cost):'$0')+'</span></div>'}).join('');
+  }
+  function total_for(n,months){const q=plan(n,months,0);return (q?q.cost:0)+MEM*months}
+  $('w-b').hidden=true;
+  go();
+}
+
+/* ---------- owner ---------- */
+function closeDelModal(){const m=document.getElementById('delmodal');if(m)m.remove()}
+function showDeleteModal(uid,name){
+  closeDelModal();
+  const o=document.createElement('div');o.id='delmodal';
+  o.style.cssText='position:fixed;inset:0;background:rgba(17,17,17,.65);z-index:50;overflow:auto;padding:16px';
+  document.body.appendChild(o);o.onclick=e=>{if(e.target===o)closeDelModal()};
+  const box=h=>{o.innerHTML=`<div role="dialog" aria-modal="true" style="background:#fff;border:2px solid var(--ink);max-width:520px;margin:24px auto;padding:20px">${h}</div>`};
+  const on=(sel,fn)=>{const b=o.querySelector(sel);if(b)b.onclick=fn};
+  const nm=esc(name);
+  const s1=()=>{box(`<h2>Delete ${nm}'s account?</h2>
+    <ul style="margin:8px 0 0;padding-left:20px"><li>Their profile, documents, bookings and credits are erased for good.</li><li>Any active membership is canceled right away, with no refund.</li><li>This cannot be undone.</li></ul>
+    <div class="row" style="margin-top:16px"><button class="solid" id="dno">keep account</button><button id="dyes">continue</button></div>`);on('#dno',closeDelModal);on('#dyes',s2)};
+  const s2=()=>{box(`<h2>Are you sure?</h2><p>You are about to delete <b>${nm}</b>.</p>
+    <div class="row" style="margin-top:16px"><button class="solid" id="dno">no, keep it</button><button id="dyes">yes, I'm sure</button></div>`);on('#dno',closeDelModal);on('#dyes',s3)};
+  const s3=()=>{box(`<h2>Are you sure sure?</h2><p>Last chance. Nothing here can be brought back.</p>
+    <div class="row" style="margin-top:16px"><button class="solid" id="dno">ok, keep it</button><button id="dfinal" style="border-color:#b00020;color:#b00020">delete ${nm} forever</button></div>`);
+    on('#dno',closeDelModal);
+    on('#dfinal',async()=>{const b=o.querySelector('#dfinal');b.disabled=true;b.textContent='deleting…';
+      try{const {data:ss}=await sb.auth.getSession();
+        const r=await fetch(SB_URL+'/functions/v1/admin-delete-user',{method:'POST',headers:{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+ss.session.access_token},body:JSON.stringify({user_id:uid})});
+        const j=await r.json();if(!r.ok)throw new Error(j.error||'Could not delete. Please try again.');
+        closeDelModal();S.oopen={};note('Account deleted.');await render();
+      }catch(e){closeDelModal();toast(e.message||String(e),true)}});};
+  s1();
+}
+const fmtD=d=>d?new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+async function renderOwner(){
+  const [pr,ms,dc,bk,ch,lg,tr]=await Promise.all([
+    sb.from('profiles').select('*').order('created_at',{ascending:false}),
+    sb.from('memberships').select('*'),
+    sb.from('documents').select('*').order('created_at',{ascending:false}),
+    sb.from('bookings').select('*').eq('status','booked').order('day'),
+    sb.from('chairs').select('*').eq('bookable',true).order('id'),
+    sb.from('credit_ledger').select('user_id,amount'),
+    sb.rpc('admin_meet_greets',{p_from:iso(new Date(Date.now()-21*864e5)),p_to:iso(new Date(Date.now()+90*864e5))})]);
+  const balBy={};(lg.data||[]).forEach(r=>{balBy[r.user_id]=(balBy[r.user_id]||0)+r.amount});
+  const people=(pr.data||[]).filter(p=>!p.is_admin);
+  const memBy=Object.fromEntries((ms.data||[]).map(m=>[m.user_id,m]));
+  const nameBy=Object.fromEntries((pr.data||[]).map(p=>[p.id,p.full_name||'(no name)']));
+  const chairs=ch.data||[];const books=bk.data||[];
+  const paths=(dc.data||[]).map(d=>d.file_path);
+  const urlBy={};
+  if(paths.length){const {data}=await sb.storage.from('documents').createSignedUrls(paths,900);(data||[]).forEach(x=>{if(x.signedUrl)urlBy[x.path]=x.signedUrl})}
+  const lab=b=>b==='AM'?'morning':'afternoon';
+  const byDay={};books.forEach(x=>{(byDay[x.day]=byDay[x.day]||[]).push(x)});
+  const today=iso(new Date());const far=new Date();far.setFullYear(far.getFullYear()+1);const near=new Date();near.setMonth(near.getMonth()-6);
+  // Monday meet & greet tours
+  const TZ='America/Los_Angeles';
+  const tDay=t=>new Date(t).toLocaleDateString('en-US',{timeZone:TZ,weekday:'long',month:'short',day:'numeric'});
+  const tTime=t=>new Date(t).toLocaleTimeString('en-US',{timeZone:TZ,hour:'numeric',minute:'2-digit'});
+  const tours=tr.error?null:(tr.data||[]);
+  const tourCard=t=>{const live=t.status==='booked'||t.status==='completed'||t.status==='no_show';
+    return `<div class="tour"><div class="row" style="justify-content:space-between"><span class="when">${tTime(t.starts_at)}</span><span class="tag ${t.status==='launched'?'ok':''}">${t.status.replace('_',' ')}</span></div>
+    <div><b>${esc(t.full_name)}</b></div>
+    <div class="small">${t.phone?`<a href="tel:${esc(t.phone)}">${esc(t.phone)}</a> &middot; `:''}<a href="mailto:${esc(t.email)}">${esc(t.email)}</a></div>
+    ${t.owner_notes?`<div class="small">note: ${esc(t.owner_notes)}</div>`:''}
+    <div class="row">${t.status==='booked'?`<button data-ts="${t.id}|completed">tour done</button><button data-ts="${t.id}|no_show">no show</button>`:''}${live&&t.status!=='no_show'?`<button class="solid" data-launch="${t.id}" data-nm="${esc(t.full_name)}">launch application</button>`:''}${t.status==='no_show'?`<button data-ts="${t.id}|booked">back to booked</button>`:''}${t.status==='booked'?`<button data-ts="${t.id}|cancelled" data-nm="${esc(t.full_name)}">cancel tour</button>`:''}${live?`<button data-tn="${t.id}">note</button>`:''}${t.status==='launched'?`<button data-unl="${t.id}" data-nm="${esc(t.full_name)}">undo launch</button>`:''}<button data-deltour="${t.id}" data-nm="${esc(t.full_name)}">delete tour</button></div></div>`};
+  const nowMs=Date.now();
+  const upT=tours?tours.filter(t=>t.status!=='cancelled'&&new Date(t.starts_at).getTime()>=nowMs-3*36e5):[];
+  const pastT=tours?tours.filter(t=>!(t.status!=='cancelled'&&new Date(t.starts_at).getTime()>=nowMs-3*36e5)).reverse():[];
+  const dayGroups=list=>{let last='',out='';for(const t of list){const d=tDay(t.starts_at);if(d!==last){out+=`<div class="tourday">${d}</div>`;last=d}out+=tourCard(t)}return out};
+  let th=`<h2>Monday tours</h2>`;
+  if(tours===null)th+=`<p class="small">Tours are not switched on yet. Run the meet &amp; greet SQL in Supabase, then refresh.</p>`;
+  else{th+=upT.length?`<p class="small">Tour done, then tap <b>launch application</b>. They get an email that opens their application and signup.</p>`+dayGroups(upT):`<p class="small">No tours booked yet. Prospects pick a Monday time at culthairpdx.com/join.html#tour.</p>`;
+    if(pastT.length)th+=`<details style="margin-top:10px"><summary class="small">earlier tours (${pastT.length})</summary>${dayGroups(pastT)}</details>`}
+  // calendar
+  let h=`<p style="margin:0 0 14px"><button id="jumpst" class="solid">jump to stylists &darr;</button></p>${th}<h2>Chair calendar</h2><p class="small">Every booking, all stylists. Tap a day to see who has each chair.</p>`;
+  h+=monthGrid('o',S.ocal,iso(near),iso(far),ds=>{const n=(byDay[ds]||[]).length;return n?`${n} booked`:''});
+  const sel=S.ocal.sel;
+  if(sel){h+=`<div class="dayp"><b>${dayLabel(sel)}</b>`+chairs.map(c=>`<div class="dp"><span class="cn">${esc(c.name)}</span>`+['AM','PM'].map(b=>{const x=(byDay[sel]||[]).find(y=>y.chair_id===c.id&&y.block===b);
+    return `<span style="flex:1;min-width:130px">${lab(b)}: ${x?`<b>${esc(nameBy[x.user_id]||'?')}</b>`:'<span class="small">open</span>'}</span>`}).join('')+'</div>').join('')+'</div>'}
+  // stylists, laid out like a contacts list: tap a name to open the full record
+  const nameKey=p=>{const t=(p.full_name||'').trim().toLowerCase().split(/\s+/);return (t[t.length-1]||'')+' '+(t[0]||'')};
+  people.sort((x,y)=>nameKey(x)<nameKey(y)?-1:1);
+  const gaps=p=>{ /* what is not yet in order for this stylist */
+    const docs=(dc.data||[]).filter(d=>d.user_id===p.id);const m=memBy[p.id]||{status:'none'};const out=[];
+    if(p.status!=='approved')out.push(['Approval',p.status==='applicant'?'not reviewed yet':p.status]);
+    if(m.status!=='active')out.push(['Membership',m.status==='none'?'not started':String(m.status).replace('_',' ')]);
+    for(const [k,l] of DOCS){const list=docs.filter(d=>d.kind===k);
+      if(list.some(d=>d.status==='verified'&&d.expires_on>=today))continue;
+      const n=list[0],v=list.find(d=>d.status==='verified');
+      out.push([l,!n?'not uploaded':n.status==='pending'?'waiting for your review':n.status==='rejected'?'sent back, waiting for a new upload':'expired '+(v||n).expires_on])}
+    return out};
+  const need=people.filter(p=>gaps(p).length).length;
+  h+=`<h2 id="stylists">Stylists (${people.length})</h2>`+(people.length?`<div class="tabs" style="margin-bottom:10px"><button data-of="all" aria-pressed="${S.ofilter!=='need'}">all (${people.length})</button><button data-of="need" aria-pressed="${S.ofilter==='need'}">needs attention (${need})</button></div><label style="margin:0 0 10px">Search by first or last name<input id="osearch" type="search" placeholder="name, email or phone" autocomplete="off"></label>`:'<p class="small">Nobody has signed up yet.</p>');
+  for(const p of people){
+    const docs=(dc.data||[]).filter(d=>d.user_id===p.id);const m=memBy[p.id]||{status:'none'};
+    const upcoming=books.filter(x=>x.user_id===p.id&&x.day>=today).length;
+    const since=m.status==='active'?`active since ${fmtD(m.started_at||m.updated_at)}`:`membership ${m.status}`;
+    const g=gaps(p);
+    const q=((p.full_name||'')+' '+(p.email||'')+' '+(p.phone||'')).toLowerCase();
+    h+=`<details class="scard crow" data-id="${p.id}" data-ok="${g.length?0:1}" data-q="${esc(q)}"${(S.oopen||{})[p.id]?' open':''}><summary><span class="info"><b>${esc(p.full_name||'(no name)')}</b><span class="small">${p.phone?`<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`:'no phone'}${p.email?` &middot; <a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`:''}</span></span><span class="tag ${g.length?'':'ok'}">${g.length?'needs '+g.length:'&#10003; verified'}</span></summary><div class="crowbody">`;
+    if(g.length)h+=`<ul class="gaps">${g.map(([x,y])=>`<li><b>${esc(x)}</b>: ${esc(y)}</li>`).join('')}</ul>`;
+    h+=`<div class="row" style="margin:6px 0"><span class="tag ${p.status==='approved'?'ok':''}">${p.status}</span> <span class="tag ${m.status==='active'?'ok':''}">${since}</span></div>
+    <p class="small">credits ${balBy[p.id]||0} &middot; joined ${fmtD(p.created_at)} &middot; ${upcoming} upcoming booking${upcoming===1?'':'s'}</p>`;
+    for(const [k,l] of DOCS){
+      const list=docs.filter(d=>d.kind===k);
+      h+=`<div style="border-top:1px solid #ddd;padding:10px 0"><b>${l}</b>`;
+      if(!list.length){h+=` <span class="tag">not uploaded</span></div>`;continue}
+      const show=(d,old)=>`<div style="margin:6px 0${old?';opacity:.8':''}"><span class="tag ${d.status==='verified'?'ok':''}">${d.status==='rejected'?'sent back':d.status}</span> <span class="small">uploaded ${fmtD(d.created_at)} &middot; expires ${d.expires_on}${d.expires_on<today?' (expired)':''}</span>
+        <div class="row" style="margin-top:6px">${urlBy[d.file_path]?`<a href="${urlBy[d.file_path]}" target="_blank" rel="noopener" class="small">open full size</a>`:''}${d.status!=='verified'?`<button data-rev="${d.id}|verified">verify</button>`:''}${d.status!=='rejected'?`<button data-rev="${d.id}|rejected">send back</button>`:''}</div>
+        ${urlBy[d.file_path]&&!/\.pdf$/i.test(d.file_path)?`<a href="${urlBy[d.file_path]}" target="_blank" rel="noopener"><img class="pv" loading="lazy" src="${urlBy[d.file_path]}" alt="${l} preview"></a>`:''}</div>`;
+      h+=show(list[0],false);
+      if(list.length>1)h+=`<details><summary class="small">older uploads (${list.length-1})</summary>${list.slice(1).map(d=>show(d,true)).join('')}</details>`;
+      h+='</div>';
+    }
+    h+=`<div class="row" style="margin-top:10px">
+     ${p.status!=='approved'?`<button class="solid" data-st="${p.id}|approved">approve</button>`:`<button data-st="${p.id}|paused">pause</button>`}
+     ${p.status==='applicant'?`<button data-st="${p.id}|closed">decline</button>`:''}
+     ${m.status!=='active'?`<button data-mem="${p.id}|active">activate membership</button>`:`<button data-mem="${p.id}|canceled">end membership</button>`}
+     <button data-cr="${p.id}">add credits</button></div>
+     <div class="row" style="margin-top:18px;border-top:1px solid #ddd;padding-top:12px"><button data-del="${p.id}" data-nm="${esc(p.full_name||p.email||'this stylist')}" style="border-color:#b00020;color:#b00020">delete account</button></div></div></details>`;
+  }
+  const box=$('#ownerbox');box.innerHTML=h;bindCal();
+  const os=box.querySelector('#osearch');
+  const filt=()=>{const t=(os?os.value:'').trim().toLowerCase();if(os)S.osearch=os.value;
+    const cards=[...box.querySelectorAll('.scard')];cards.forEach(c=>c.classList.toggle('hide',(!!t&&!c.dataset.q.includes(t))||(S.ofilter==='need'&&c.dataset.ok==='1')));
+    const vis=cards.filter(c=>!c.classList.contains('hide'));if(t&&vis.length===1)vis[0].open=true};
+  if(os){if(S.osearch)os.value=S.osearch;os.oninput=filt}
+  const jb=box.querySelector('#jumpst');if(jb)jb.onclick=()=>{const t=document.getElementById('stylists');if(t)t.scrollIntoView({behavior:'smooth'});if(os)setTimeout(()=>os.focus({preventScroll:true}),400)};
+  box.querySelectorAll('[data-of]').forEach(b=>b.onclick=()=>{S.ofilter=b.dataset.of;box.querySelectorAll('[data-of]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.of===S.ofilter)));filt()});
+  box.querySelectorAll('details.crow').forEach(d=>d.addEventListener('toggle',()=>{S.oopen=S.oopen||{};S.oopen[d.dataset.id]=d.open}));
+  filt();
+  const act=(sel,fn)=>box.querySelectorAll(sel).forEach(b=>b.onclick=()=>run(async()=>{await fn(b);}));
+  act('[data-st]',async b=>{const [u,s]=b.dataset.st.split('|');const {error}=await sb.rpc('admin_set_status',{p_user:u,p_status:s});if(error)throw error;note('Updated.')});
+  act('[data-mem]',async b=>{const [u,s]=b.dataset.mem.split('|');const {error}=await sb.rpc('admin_set_membership',{p_user:u,p_status:s});if(error)throw error;note('Updated.')});
+  act('[data-rev]',async b=>{const [u,s]=b.dataset.rev.split('|');const {error}=await sb.rpc('admin_review_document',{p_doc:u,p_status:s});if(error)throw error;note('Updated.')});
+  act('[data-ts]',async b=>{const [u,st]=b.dataset.ts.split('|');if(st==='cancelled'&&!confirm('Cancel the tour for '+(b.dataset.nm||'this person')+'?'))return;const {error}=await sb.rpc('admin_set_meet_greet',{p_id:u,p_status:st});if(error)throw error;note('Updated.')});
+  act('[data-unl]',async b=>{if(!confirm('Undo the launch for '+(b.dataset.nm||'this person')+'? They will no longer be able to create an account or continue their application.'))return;const {error}=await sb.rpc('admin_undo_launch',{p_id:b.dataset.unl});if(error)throw error;note('Launch undone.')});
+  act('[data-deltour]',async b=>{if(!confirm('Delete the tour for '+(b.dataset.nm||'this person')+' completely? This also removes their approval to create an account. The time slot opens up again.'))return;const {error}=await sb.rpc('admin_delete_meet_greet',{p_id:b.dataset.deltour});if(error)throw error;note('Tour deleted.')});
+  act('[data-tn]',async b=>{const t=(tours||[]).find(x=>x.id===b.dataset.tn);const n=prompt('Note about this person (only you see it)',t?t.owner_notes:'');if(n===null)return;const {error}=await sb.rpc('admin_set_meet_greet',{p_id:b.dataset.tn,p_status:t.status,p_notes:n});if(error)throw error;note('Saved.')});
+  act('[data-launch]',async b=>{if(!confirm('Launch the application for '+(b.dataset.nm||'this person')+'? They get an email right away.'))return;const {error}=await sb.rpc('admin_launch_application',{p_id:b.dataset.launch});if(error)throw error;note('Application launched. They got an email.')});
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>showDeleteModal(b.dataset.del,b.dataset.nm));
+  act('[data-cr]',async b=>{const a=parseInt(prompt('How many credits? (1 credit = $1)'),10);if(!a)return;const r=prompt('Reason (shown in their history)','Added by owner');const {error}=await sb.rpc('admin_add_credits',{p_user:b.dataset.cr,p_amount:a,p_reason:r||'Added by owner'});if(error)throw error;note('Added '+a+' credits.')});
+}
+
+(async()=>{try{await load()}catch(e){note('',e.message)}
+  const q=new URLSearchParams(location.search).get('paid');
+  if(q==='1'){note('Payment received. Your chair credits or membership show up within a minute. Refresh if you do not see them yet.');history.replaceState(null,'',location.pathname)}
+  else if(q==='0'){note('Checkout cancelled. You were not charged.');history.replaceState(null,'',location.pathname)}
+  await render()})();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>

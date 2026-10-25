@@ -1,0 +1,897 @@
+<meta name="robots" content="noindex"><meta name="color-scheme" content="light only"><title>Cult Booking Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Montserrat:wght@500;600&display=swap">
+<style>
+/* Layout concept: monochrome, taken from the Cult logo. Black rules, white ground, geometric lowercase headings.
+   Palette is one ink and one paper, so a real brand color can be dropped into --accent later. */
+:root {
+  --bg: #FFFFFF;
+  --surface: #FFFFFF;
+  --ink: #111111;
+  --on-ink: #FFFFFF;
+  --muted: #5B5B5B;
+  --line: #111111;
+  --soft: #F2F2F2;
+  --taken: #F0F0F0;
+  --hatch: #CDCDCD;
+  --mine: #DADADA;
+  --alert: #B3261E;
+  --focus: #111111;
+  --font-head: 'Jost', 'Century Gothic', 'Futura', system-ui, sans-serif;
+  --font-body: 'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-label: 'Montserrat', 'Jost', system-ui, sans-serif;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0E0E0E; --surface: #161616; --ink: #F3F3F3; --on-ink: #0E0E0E; --muted: #A6A6A6; --line: #CFCFCF;
+  --soft: #202020; --taken: #1B1B1B; --hatch: #333333; --mine: #3A3A3A; --alert: #FF8A80; --focus: #FFFFFF;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .logo { filter: invert(1); }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45; }
+.app { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 200px; }
+.app.admin { max-width: 980px; }
+h1, h2, h3 { font-family: var(--font-head); text-transform: lowercase; letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; font-weight: 500; }
+h1 { font-size: 42px; }
+h2 { font-size: 28px; }
+h3 { font-size: 21px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+.label { font-family: var(--font-label); font-weight: 600; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 2px solid var(--line); }
+.logo { height: 38px; width: auto; display: block; }
+.seg { display: inline-flex; border: 2px solid var(--line); flex: none; }
+.seg button { font: 600 12px var(--font-label); letter-spacing: .08em; text-transform: uppercase; background: var(--surface); color: var(--ink); border: 0; padding: 9px 12px; min-height: 40px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+.page-head { padding-top: 22px; display: flex; flex-direction: column; gap: 6px; }
+
+/* cards, buttons */
+.card { background: var(--surface); border: 2px solid var(--line); padding: 16px; margin-top: 16px; }
+.card h3 { margin-bottom: 8px; }
+.btn { font: inherit; font-weight: 500; border: 2px solid var(--line); background: var(--surface); color: var(--ink); padding: 11px 18px; min-height: 48px; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--on-ink); }
+.btn.big { width: 100%; font-size: 18px; min-height: 56px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.small { min-height: 40px; padding: 7px 14px; font-size: 15px; }
+.link { background: none; border: 0; padding: 4px 0; font: inherit; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 32px; text-align: left; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.chip { display: inline-block; border: 2px solid var(--line); padding: 1px 8px; font-family: var(--font-label); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; background: var(--surface); white-space: nowrap; }
+.chip.dark { background: var(--ink); color: var(--on-ink); }
+.chip.soft { background: var(--soft); }
+.chip .dot, .dot { display: inline-block; width: 8px; height: 8px; background: var(--alert); margin-right: 5px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* home */
+.balance { font-family: var(--font-head); font-weight: 500; font-size: 68px; line-height: .95; letter-spacing: -0.02em; }
+.next { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: stretch; }
+.chair-badge { background: var(--ink); color: var(--on-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; }
+.chair-badge small { font: 600 9px var(--font-label); letter-spacing: .12em; text-transform: uppercase; }
+.chair-badge span { font-family: var(--font-head); font-size: 36px; line-height: 1; font-weight: 500; }
+.creds { list-style: none; margin: 0; padding: 0; }
+.creds li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 2px solid var(--line); }
+.creds li:first-child { border-top: 0; }
+.soft-note { background: var(--soft); padding: 10px 12px; margin-top: 10px; font-size: 15px; border: 2px solid var(--line); }
+
+/* booking grid */
+.dates { display: flex; gap: 2px; background: var(--line); border: 2px solid var(--line); overflow-x: auto; margin-top: 16px; scrollbar-width: thin; }
+.dates button { flex: 0 0 58px; font: inherit; border: 0; background: var(--surface); color: var(--ink); padding: 8px 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-height: 64px; }
+.dates button small { font-family: var(--font-label); font-weight: 600; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.dates button b { font-family: var(--font-head); font-size: 27px; line-height: 1.1; font-weight: 500; }
+.dates button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+.dates button[aria-pressed="true"] small { color: var(--on-ink); }
+.hours { font-size: 14px; color: var(--muted); margin-top: 10px; }
+.assign { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.assign span { font-size: 15px; margin-right: 4px; }
+.rooster { display: grid; grid-template-columns: 52px 1fr 1fr 72px; gap: 2px; background: var(--line); border: 2px solid var(--line); margin-top: 14px; }
+.rooster.board { grid-template-columns: 52px 1fr 1fr; }
+.hd { background: var(--surface); padding: 8px 4px; text-align: center; font-size: 11px; line-height: 1.2; color: var(--muted); min-width: 0; }
+.hd b { display: block; font-family: var(--font-label); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 11px; color: var(--ink); margin-bottom: 2px; }
+.chair { background: var(--ink); color: var(--on-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60px; }
+.chair small { font: 600 8.5px var(--font-label); letter-spacing: .12em; text-transform: uppercase; }
+.chair span { font-family: var(--font-head); font-size: 30px; line-height: 1; font-weight: 500; }
+.cell { font: inherit; border: 0; color: var(--ink); background: var(--surface); min-height: 60px; min-width: 0; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; padding: 4px; }
+.cell .p { font-family: var(--font-head); font-weight: 500; font-size: 22px; line-height: 1; }
+.cell .s { font-size: 11px; opacity: .85; line-height: 1.15; text-align: center; }
+.cell:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; position: relative; z-index: 1; }
+.cell.taken { background: repeating-linear-gradient(135deg, var(--taken) 0 6px, var(--hatch) 6px 7px); color: var(--muted); cursor: not-allowed; }
+.cell.ended { background: var(--taken); color: var(--muted); cursor: not-allowed; }
+.cell.ended .p { opacity: .5; }
+.cell.mine { background: var(--mine); cursor: default; }
+.cell.sel { background: var(--ink); color: var(--on-ink); }
+.cell.na { background: var(--taken); color: var(--muted); cursor: not-allowed; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--line); margin-right: 5px; vertical-align: -2px; background: var(--surface); }
+.legend i.t { background: repeating-linear-gradient(135deg, var(--taken) 0 3px, var(--hatch) 3px 4px); }
+.legend i.m { background: var(--mine); }
+.legend i.s { background: var(--ink); }
+
+/* bookings */
+.bk { display: grid; grid-template-columns: 56px 1fr; gap: 14px; }
+.bk .chair-badge span { font-size: 30px; }
+.bk-title { font-weight: 600; font-size: 17px; }
+.bk-actions { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.inline-panel { border: 2px solid var(--line); padding: 12px; width: 100%; background: var(--soft); }
+.inline-panel textarea { width: 100%; font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); padding: 8px; min-height: 76px; margin: 8px 0; }
+.sec-title { margin-top: 26px; }
+
+/* credits */
+.pack { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 12px 0; border-top: 2px solid var(--line); }
+.pack:first-of-type { border-top: 0; }
+.pack b { font-size: 18px; font-weight: 600; }
+.pack .price { font-family: var(--font-head); font-weight: 500; font-size: 28px; }
+.ledger { list-style: none; margin: 0; padding: 0; }
+.ledger li { display: grid; grid-template-columns: 74px 1fr auto; gap: 10px; padding: 9px 0; border-top: 2px solid var(--line); font-size: 15px; }
+.ledger li:first-child { border-top: 0; }
+.ledger .d { color: var(--muted); font-size: 13px; padding-top: 2px; }
+.ledger .a { font-weight: 600; }
+
+/* admin */
+.counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2px; background: var(--line); border: 2px solid var(--line); margin-top: 16px; }
+.counts div { background: var(--surface); padding: 12px 14px; }
+.counts b { display: block; font-family: var(--font-head); font-weight: 500; font-size: 40px; line-height: 1; }
+.counts span { font-size: 13px; color: var(--muted); }
+.two { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+@media (min-width: 820px) { .two { grid-template-columns: 1fr 1fr; } }
+.docs { list-style: none; margin: 8px 0 0; padding: 0; }
+.docs li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; padding: 6px 0; border-top: 1px solid var(--hatch); font-size: 15px; align-items: baseline; }
+.docs li:first-child { border-top: 0; }
+.docs .ck { font-weight: 600; }
+.outcome { margin-top: 10px; padding: 10px 12px; background: var(--soft); border: 2px solid var(--line); font-size: 15px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 16px; }
+.stats .card { margin-top: 0; }
+.stats b { display: block; font-family: var(--font-head); font-weight: 500; font-size: 44px; line-height: 1; margin: 6px 0 4px; }
+.bars { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.bar { display: grid; grid-template-columns: 74px 1fr 44px; gap: 10px; align-items: center; font-size: 14px; }
+.bar .track { height: 20px; border: 2px solid var(--line); background: var(--surface); }
+.bar .fill { height: 100%; background: var(--ink); }
+.srow { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; width: 100%; font: inherit; color: var(--ink); background: var(--surface); border: 0; border-top: 2px solid var(--line); padding: 12px 0; cursor: pointer; text-align: left; align-items: center; }
+.srow:first-child { border-top: 0; }
+.srow .meta { font-size: 14px; color: var(--muted); grid-column: 1 / -1; }
+.srow b { font-weight: 600; font-size: 17px; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.filters button { font: 600 12px var(--font-label); letter-spacing: .06em; text-transform: uppercase; border: 2px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 12px; min-height: 40px; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
+.search { width: 100%; font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); padding: 10px 12px; min-height: 48px; margin-top: 12px; }
+.bcell { background: var(--surface); min-height: 62px; padding: 8px 10px; font-size: 14px; min-width: 0; }
+.bcell b { display: block; font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+.bcell small { color: var(--muted); font-size: 12px; }
+.bcell.open { background: repeating-linear-gradient(135deg, var(--taken) 0 6px, var(--hatch) 6px 7px); color: var(--muted); display: flex; align-items: center; }
+.draft { border: 2px solid var(--line); padding: 12px; background: var(--soft); font-size: 15px; white-space: pre-wrap; }
+
+/* dock, sheet, toast */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bg); border-top: 2px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.dock-in { max-width: 720px; margin: 0 auto; }
+.dock-in.admin { max-width: 980px; }
+.sum { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: var(--ink); color: var(--on-ink); }
+.sum b { font-family: var(--font-head); font-size: 23px; font-weight: 500; letter-spacing: -0.01em; }
+.sum .btn { background: var(--on-ink); color: var(--ink); border-color: var(--on-ink); }
+.nav { display: grid; grid-template-columns: repeat(4, 1fr); }
+.nav button { font: 600 11.5px var(--font-label); background: none; border: 0; color: var(--muted); padding: 14px 4px 12px; min-height: 52px; position: relative; cursor: pointer; text-transform: uppercase; letter-spacing: .1em; }
+.nav button[aria-current="page"] { color: var(--ink); }
+.nav button[aria-current="page"]::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--ink); }
+.nav .badge { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 6px; background: var(--ink); color: var(--on-ink); font-size: 10px; line-height: 17px; letter-spacing: 0; }
+.backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .5); z-index: 30; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 31; max-width: 720px; margin: 0 auto; background: var(--surface); border: 2px solid var(--line); border-bottom: 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px)); max-height: 88%; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.sheet:focus { outline: none; }
+.lines { list-style: none; margin: 0; padding: 0; }
+.line { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 2px solid var(--line); }
+.line:first-child { border-top: 0; }
+.amt { font-family: var(--font-head); font-weight: 500; font-size: 26px; white-space: nowrap; }
+.note { color: var(--muted); font-size: 14px; }
+.notice { border: 2px solid var(--line); padding: 10px 12px; font-size: 15px; background: var(--soft); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; }
+.check input { width: 22px; height: 22px; margin-top: 2px; flex: none; accent-color: var(--ink); }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.btns .btn { flex: 1 1 140px; }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); max-width: 560px; margin: 0 auto; z-index: 40; background: var(--ink); color: var(--on-ink); padding: 12px 16px; font-weight: 500; border: 2px solid var(--line); }
+.tools { margin-top: 34px; border-top: 2px solid var(--line); padding-top: 12px; font-size: 14px; }
+.tools summary { cursor: pointer; font-weight: 600; }
+.tools .stack { margin-top: 10px; }
+.tools select { font: inherit; color: var(--ink); background: var(--surface); border: 2px solid var(--line); padding: 8px; min-height: 40px; }
+.footnote { margin-top: 18px; font-size: 13px; color: var(--muted); }
+@media (max-width: 420px) {
+  h1 { font-size: 36px; }
+  .balance { font-size: 56px; }
+  .logo { height: 32px; }
+  .rooster { grid-template-columns: 46px 1fr 1fr 62px; }
+  .rooster.board { grid-template-columns: 46px 1fr 1fr; }
+  .cell .p { font-size: 20px; }
+  .seg button { padding: 9px 9px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cell, .btn, .dates button { transition: background-color .12s ease; }
+}
+</style>
+<div style="background:#FF8A90;color:#111;font:14px system-ui;text-align:center;padding:8px 12px">preview only &middot; not connected to anything &middot; <a href="book.html" style="color:#111">back to the site</a></div>
+
+<div class="app" id="app">
+  <header class="top">
+    <img class="logo" alt="Cult" src="data:image/png;base64,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">
+    <div class="seg" role="group" aria-label="View as">
+      <button data-act="mode" data-mode="stylist" aria-pressed="true">Stylist</button>
+      <button data-act="mode" data-mode="admin" aria-pressed="false">Admin</button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <details class="tools" id="tools">
+    <summary>Demo tools</summary>
+    <div class="stack">
+      <p class="muted">A working prototype with sample data and no real payments. Use the clock to test late bookings, refund windows, and what the admin sees at different times of day.</p>
+      <label for="clock">Pretend it's</label>
+      <select id="clock">
+        <option value="real">Right now</option>
+        <option value="0800">Today, 8:00 a.m.</option>
+        <option value="1030">Today, 10:30 a.m.</option>
+        <option value="1600">Today, 4:00 p.m.</option>
+        <option value="2130">Today, 9:30 p.m.</option>
+        <option value="custom" hidden>Stepped by days</option>
+      </select>
+      <div class="btns">
+        <button class="btn small" data-act="dayShift" data-n="-1">Back a day</button>
+        <button class="btn small" data-act="dayShift" data-n="1">Forward a day</button>
+        <button class="btn small" data-act="resetDemo">Reset demo</button>
+      </div>
+      <p class="muted num" id="clocktext"></p>
+    </div>
+  </details>
+  <p class="footnote">Powered by Chare (working name). Prototype with sample data. Credits are dollars, and no real card is charged. The logo is a temporary placeholder.</p>
+</div>
+<div class="dock" id="dock"></div>
+<div id="sheet"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Settings (each salon would set these) ----------
+  var CFG = {
+    chairs: 7,
+    am: { start: '09:00', end: '14:45' },
+    pm: { start: '15:15', end: '21:00' },
+    door: { open: '06:00', close: '23:00' },
+    half: 65, full: 100, bulkMin: 4, reviewDays: 7
+  };
+  var PACKS = [
+    { id: 'half', label: 'Half day', days: 0.5, price: 65, credits: 65 },
+    { id: 'd1', label: '1 day', days: 1, price: 100, credits: 100 },
+    { id: 'd4', label: '4 days', days: 4, price: 380, credits: 400 },
+    { id: 'd7', label: '7 days', days: 7, price: 630, credits: 700 },
+    { id: 'd14', label: '14 days', days: 14, price: 1190, credits: 1400 },
+    { id: 'd20', label: '20 days', days: 20, price: 1500, credits: 2000 }
+  ];
+  var LABEL = { AM: 'Morning', PM: 'Afternoon', FULL: 'Full day' };
+  var WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var NAMES = ['Dana K.', 'Marcus B.', 'Priya S.', 'Leo G.', 'Tessa M.', 'Rosa A.', 'Kai B.', 'Aiden W.', 'Noor H.', 'Jules P.', 'Ines R.', 'Theo L.'];
+
+  // ---------- Helpers ----------
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function key(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function fromKey(k) { var p = k.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function atTime(k, hhmm) { var d = fromKey(k); var p = hhmm.split(':').map(Number); d.setHours(p[0], p[1], 0, 0); return d; }
+  function addDays(k, n) { var d = fromKey(k); d.setDate(d.getDate() + n); return key(d); }
+  function fmtDay(k) { var d = fromKey(k); return WD[d.getDay()] + ', ' + MO[d.getMonth()] + ' ' + d.getDate(); }
+  function fmtShort(k) { var d = fromKey(k); return MO[d.getMonth()] + ' ' + d.getDate(); }
+  function fmtClock(d) { var h = d.getHours(), m = d.getMinutes(); var ap = h >= 12 ? 'p.m.' : 'a.m.'; h = h % 12 || 12; return h + ':' + pad(m) + ' ' + ap; }
+  function fmtHM(hhmm) { return fmtClock(atTime('2000-01-01', hhmm)); }
+  function fmtLeft(ms) { var mins = Math.max(0, Math.round(ms / 60000)); var h = Math.floor(mins / 60), m = mins % 60; return h ? (h + ' hr' + (m ? ' ' + m + ' min' : '')) : (m + ' min'); }
+  function money(n) { return '$' + n.toLocaleString('en-US'); }
+  function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return ((h >>> 0) % 1000) / 1000; }
+  function span(k, type) {
+    if (type === 'AM') return { start: atTime(k, CFG.am.start), end: atTime(k, CFG.am.end) };
+    if (type === 'PM') return { start: atTime(k, CFG.pm.start), end: atTime(k, CFG.pm.end) };
+    return { start: atTime(k, CFG.am.start), end: atTime(k, CFG.pm.end) };
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function first(n) { return n.split(' ')[0]; }
+
+  // ---------- State ----------
+  var state;
+  function now() { return new Date(Date.now() + state.offset); }
+  function today() { return key(now()); }
+
+  function init() {
+    state = { offset: 0, clockMode: 'real', mode: 'stylist', tab: 'home', date: null, sel: new Set(), bookings: [], ledger: [], uid: 1, sheet: null, openCancel: null, openReview: null, filter: 'all', q: '', admin: null };
+    var D0 = key(new Date());
+    function mk(date, chair, type, owner) {
+      return { id: 'b' + (state.uid++), date: date, chair: chair, type: type, owner: owner, status: 'booked', cost: type === 'FULL' ? CFG.full : CFG.half, final: false, finalReason: null };
+    }
+    state.bookings.push(mk(addDays(D0, -3), 4, 'FULL', 'me'), mk(addDays(D0, -2), 4, 'PM', 'me'), mk(addDays(D0, 1), 4, 'AM', 'me'));
+    var occ = occupancy();
+    for (var i = -10; i <= 45; i++) {
+      var k = addDays(D0, i);
+      for (var c = 1; c <= CFG.chairs; c++) {
+        var r = hash(k + ':' + c);
+        var type = r < 0.16 ? 'FULL' : r < 0.34 ? 'AM' : r < 0.52 ? 'PM' : null;
+        if (!type) continue;
+        var blocks = type === 'FULL' ? ['AM', 'PM'] : [type];
+        if (blocks.some(function (b) { return occ.has(k + '|' + c + '|' + b); })) continue;
+        state.bookings.push(mk(k, c, type, 'other'));
+      }
+    }
+    function led(dayOffset, hhmm, desc, amount, kind) { state.ledger.push({ id: 'l' + (state.uid++), ts: atTime(addDays(D0, dayOffset), hhmm), desc: desc, amount: amount, kind: kind }); }
+    led(-7, '10:12', 'Bought a 7-day pack', 700, 'purchase');
+    led(-5, '18:40', 'Chair 4, ' + fmtDay(addDays(D0, -3)) + ', Full day', -100, 'booking');
+    led(-4, '09:05', 'Chair 4, ' + fmtDay(addDays(D0, -2)) + ', Afternoon', -65, 'booking');
+    led(-1, '20:31', 'Chair 4, ' + fmtDay(addDays(D0, 1)) + ', Morning', -65, 'booking');
+
+    function docs(lic, ic, ins, note) {
+      return [['Practitioner license', lic, note && note.lic || 'Verified on the state lookup'], ['Independent contractor registration', ic, note && note.ic || 'Verified on the state lookup'], ['Liability insurance', ins, 'Certificate on file'], ['Photo ID', 'ok', 'Checked, not stored'], ['W-9', 'ok', 'Received'], ['Network agreement', 'ok', 'Signed']];
+    }
+    state.admin = {
+      apps: [
+        { id: 'a1', name: 'Jordan Lee', trade: 'Cosmetologist', applied: '2 days ago', toured: fmtShort(addDays(D0, -4)), status: 'review', docs: docs('ok', 'ok', 'ok') },
+        { id: 'a2', name: 'Maya Patel', trade: 'Barber', applied: 'Yesterday', toured: fmtShort(addDays(D0, -2)), status: 'review', docs: docs('ok', 'missing', 'ok', { ic: 'Applied with the state, still pending' }) },
+        { id: 'a3', name: 'Chris Ortiz', trade: 'Cosmetologist, moving from Washington', applied: 'Today', toured: fmtShort(addDays(D0, 0)), status: 'review', docs: docs('missing', 'missing', 'ok', { lic: 'Oregon license in process', ic: 'Not started' }) }
+      ],
+      reviews: [
+        { id: 'r1', name: 'Dana Kim', when: fmtDay(addDays(D0, -2)) + ', Afternoon', chair: 2, cost: 65, note: 'My daughter was sent home sick from school and I could not get away.', used: 1, status: 'open' },
+        { id: 'r2', name: 'Marcus Bell', when: fmtDay(addDays(D0, -3)) + ', Full day', chair: 6, cost: 100, note: 'My car broke down on the way in.', used: 0, status: 'open' }
+      ],
+      expiring: [
+        { id: 'e1', name: 'Leo Grant', what: 'Practitioner license', days: 6, sent: false },
+        { id: 'e2', name: 'Priya Shah', what: 'Independent contractor registration', days: 12, sent: false },
+        { id: 'e3', name: 'Dana Kim', what: 'Practitioner license', days: 21, sent: false },
+        { id: 'e4', name: 'Sam Rivera', what: 'Liability insurance', days: 40, sent: false }
+      ],
+      stylists: [
+        { id: 's1', name: 'Sam Rivera', trade: 'Cosmetologist', stage: 'Active', credits: 470, last: 'Booked tomorrow', cred: 'Insurance renews in 40 days', attn: false },
+        { id: 's2', name: 'Dana Kim', trade: 'Cosmetologist', stage: 'Active', credits: 210, last: 'Last booked 2 days ago', cred: 'License renews in 21 days', attn: true },
+        { id: 's3', name: 'Marcus Bell', trade: 'Barber', stage: 'Active', credits: 640, last: 'Last booked 3 days ago', cred: 'All verified', attn: false },
+        { id: 's4', name: 'Priya Shah', trade: 'Cosmetologist', stage: 'Active', credits: 1200, last: 'Booked today', cred: 'Registration renews in 12 days', attn: true },
+        { id: 's5', name: 'Leo Grant', trade: 'Barber', stage: 'Active', credits: 130, last: 'Last booked yesterday', cred: 'License renews in 6 days', attn: true },
+        { id: 's6', name: 'Tessa Moreno', trade: 'Cosmetologist', stage: 'At risk', credits: 390, last: 'No booking in 34 days', cred: 'All verified', attn: true },
+        { id: 's7', name: 'Rosa Alvarez', trade: 'Cosmetologist', stage: 'Active', credits: 560, last: 'Last booked 4 days ago', cred: 'All verified', attn: false },
+        { id: 's8', name: 'Kai Brooks', trade: 'Barber', stage: 'Paused', credits: 300, last: 'Membership paused until next month', cred: 'All verified', attn: false },
+        { id: 's9', name: 'Aiden Wu', trade: 'Barber', stage: 'Tour scheduled', credits: 0, last: 'Tour on ' + fmtShort(addDays(D0, 2)), cred: 'Application not started', attn: false }
+      ],
+      promo: false, notes: {}
+    };
+  }
+
+  function occupancy() {
+    var m = new Map();
+    (state ? state.bookings : []).forEach(function (b) {
+      if (b.status === 'cancelled') return;
+      var bl = b.type === 'FULL' ? ['AM', 'PM'] : [b.type];
+      bl.forEach(function (x) { m.set(b.date + '|' + b.chair + '|' + x, b); });
+    });
+    return m;
+  }
+  function balance() { return state.ledger.reduce(function (s, l) { return s + l.amount; }, 0); }
+
+  // ---------- Selection and pricing ----------
+  function cellInfo(occ, date, chair, block) {
+    var o = occ.get(date + '|' + chair + '|' + block);
+    var sp = span(date, block), t = now();
+    return { status: o ? (o.owner === 'me' ? 'mine' : 'taken') : 'open', ended: t >= sp.end, started: t >= sp.start, left: sp.end - t, booking: o };
+  }
+  function toggleCell(date, chair, block) {
+    var occ = occupancy(); var ci = cellInfo(occ, date, chair, block);
+    if (ci.status !== 'open' || ci.ended) return;
+    var k = date + '|' + chair + '|' + block;
+    if (state.sel.has(k)) state.sel.delete(k); else state.sel.add(k);
+  }
+  function fullAvailable(occ, date, chair) {
+    var a = cellInfo(occ, date, chair, 'AM'), p = cellInfo(occ, date, chair, 'PM');
+    return a.status === 'open' && p.status === 'open' && !a.ended && !p.ended;
+  }
+  function toggleFull(date, chair) {
+    var occ = occupancy(); if (!fullAvailable(occ, date, chair)) return;
+    var ka = date + '|' + chair + '|AM', kp = date + '|' + chair + '|PM';
+    if (state.sel.has(ka) && state.sel.has(kp)) { state.sel.delete(ka); state.sel.delete(kp); }
+    else { state.sel.add(ka); state.sel.add(kp); }
+  }
+  function assign(type) {
+    var occ = occupancy(), date = state.date, cands = [];
+    for (var c = 1; c <= CFG.chairs; c++) {
+      if (type === 'FULL') {
+        if (fullAvailable(occ, date, c) && !state.sel.has(date + '|' + c + '|AM') && !state.sel.has(date + '|' + c + '|PM')) cands.push(c);
+      } else {
+        var ci = cellInfo(occ, date, c, type);
+        if (ci.status === 'open' && !ci.ended && !state.sel.has(date + '|' + c + '|' + type)) cands.push(c);
+      }
+    }
+    if (!cands.length) { toast('No chairs are open for that on this day. Try another day or block.'); return; }
+    var pick = cands[Math.floor(Math.random() * cands.length)];
+    if (type === 'FULL') { state.sel.add(date + '|' + pick + '|AM'); state.sel.add(date + '|' + pick + '|PM'); }
+    else state.sel.add(date + '|' + pick + '|' + type);
+    toast('Chair ' + pick + ' is yours to confirm.');
+  }
+  function groupSel() {
+    var groups = new Map(), counts = new Map(), t = now(), items = [];
+    state.sel.forEach(function (k) {
+      var p = k.split('|'), g = p[0] + '|' + p[1];
+      if (!groups.has(g)) groups.set(g, { date: p[0], chair: +p[1], blocks: [] });
+      groups.get(g).blocks.push(p[2]);
+      var ck = p[0] + '|' + p[2]; counts.set(ck, (counts.get(ck) || 0) + 1);
+    });
+    groups.forEach(function (g) {
+      var full = g.blocks.length === 2, type = full ? 'FULL' : g.blocks[0], sp = span(g.date, type);
+      var bulk = g.blocks.some(function (bl) { return counts.get(g.date + '|' + bl) >= CFG.bulkMin; });
+      var late = t >= sp.start;
+      items.push({ date: g.date, chair: g.chair, blocks: full ? ['AM', 'PM'] : g.blocks, type: type, cost: full ? CFG.full : CFG.half, start: sp.start, end: sp.end, bulk: bulk, late: late, final: bulk || late, reason: bulk ? 'bulk' : late ? 'late' : null });
+    });
+    items.sort(function (a, b) { return (a.start - b.start) || (a.chair - b.chair); });
+    return items;
+  }
+  function doBook() {
+    var items = groupSel(); if (!items.length) return;
+    var total = items.reduce(function (s, i) { return s + i.cost; }, 0);
+    if (total > balance()) { toast('You need more credits for this one.'); return; }
+    var occ = occupancy(), t = now();
+    for (var n = 0; n < items.length; n++) {
+      var it = items[n];
+      for (var j = 0; j < it.blocks.length; j++) {
+        var bl = it.blocks[j];
+        if (occ.has(it.date + '|' + it.chair + '|' + bl) || t >= span(it.date, bl).end) {
+          state.sel.delete(it.date + '|' + it.chair + '|' + bl);
+          state.sheet = null; render();
+          toast('Chair ' + it.chair + ' is no longer open. Please pick another.');
+          return;
+        }
+      }
+    }
+    items.forEach(function (it) {
+      state.bookings.push({ id: 'b' + (state.uid++), date: it.date, chair: it.chair, type: it.type, owner: 'me', status: 'booked', cost: it.cost, final: it.final, finalReason: it.reason });
+      state.ledger.push({ id: 'l' + (state.uid++), ts: t, desc: 'Chair ' + it.chair + ', ' + fmtDay(it.date) + ', ' + LABEL[it.type], amount: -it.cost, kind: 'booking' });
+    });
+    state.sel.clear(); state.sheet = null; render();
+    toast(items.length === 1 ? 'Booked. Chair ' + items[0].chair + ', ' + fmtDay(items[0].date) + ', ' + LABEL[items[0].type].toLowerCase() + '.' : 'Booked ' + items.length + ' chairs. See them under Bookings.');
+  }
+
+  // ---------- Cancel and review rules ----------
+  function policy(b) {
+    var t = now(), sp = span(b.date, b.type);
+    var phase = t < sp.start ? 'upcoming' : t < sp.end ? 'inprogress' : 'past';
+    var res = { phase: phase, final: !!b.final, canCancel: false, pct: 0, freeUntil: null, canReview: false, reviewing: b.status === 'review' };
+    if (b.final) return res;
+    if (phase === 'upcoming') {
+      var hrs = (sp.start - t) / 36e5; res.canCancel = true;
+      if (hrs > 24) { res.pct = 100; res.freeUntil = new Date(sp.start.getTime() - 864e5); } else res.pct = 50;
+    } else if (phase === 'past' && b.status !== 'review') {
+      var dayAfter = atTime(addDays(b.date, 1), '00:00'), until = atTime(addDays(b.date, 1 + CFG.reviewDays), '00:00');
+      res.canReview = t >= dayAfter && t < until;
+    }
+    return res;
+  }
+  function doCancel(id) {
+    var b = state.bookings.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    var p = policy(b); if (!p.canCancel) return;
+    var amt = Math.round(b.cost * p.pct / 100);
+    b.status = 'cancelled'; state.openCancel = null;
+    state.ledger.push({ id: 'l' + (state.uid++), ts: now(), desc: 'Refund: Chair ' + b.chair + ', ' + fmtDay(b.date) + ', ' + LABEL[b.type] + ' (' + p.pct + '%)', amount: amt, kind: 'refund' });
+    render(); toast('Canceled. ' + money(amt) + ' in credits is back in your balance.');
+  }
+  function sendReview(id) {
+    var b = state.bookings.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    b.status = 'review'; state.openReview = null; render();
+    toast("Thanks. We'll take a look and let you know.");
+  }
+  function buyPack(id) {
+    var p = PACKS.filter(function (x) { return x.id === id; })[0]; if (!p) return;
+    state.ledger.push({ id: 'l' + (state.uid++), ts: now(), desc: 'Bought ' + (p.label === 'Half day' ? 'a half day' : 'a ' + p.label.replace(' days', '-day').replace(' day', '-day') + ' pack'), amount: p.credits, kind: 'purchase' });
+    var back = state.sheet && state.sheet.back;
+    state.sheet = back ? { kind: 'confirm' } : null; render();
+    toast(money(p.credits) + ' in credits added (test mode).');
+  }
+
+  // ---------- Stylist views ----------
+  function eq(bal) {
+    var full = Math.floor(bal / CFG.full), rem = bal - full * CFG.full, half = Math.floor(rem / CFG.half), parts = [];
+    if (full) parts.push(full + ' full day' + (full > 1 ? 's' : ''));
+    if (half) parts.push(half + ' half day' + (half > 1 ? 's' : ''));
+    return parts.length ? 'About ' + parts.join(' + ') : 'Not enough for a half day yet';
+  }
+  function myBookings() { return state.bookings.filter(function (b) { return b.owner === 'me'; }); }
+  function nextBooking() {
+    var t = now();
+    return myBookings().filter(function (b) { return b.status === 'booked' && span(b.date, b.type).end > t; })
+      .sort(function (a, b) { return span(a.date, a.type).start - span(b.date, b.type).start; })[0];
+  }
+  function badge(chair) { return '<div class="chair-badge"><small>Chair</small><span>' + chair + '</span></div>'; }
+
+  function viewHome() {
+    var bal = balance(), nb = nextBooking(), nx = '';
+    if (nb) {
+      var sp = span(nb.date, nb.type);
+      nx = '<div class="card"><h3>Next booking</h3><div class="next">' + badge(nb.chair) + '<div><p class="bk-title">' + fmtDay(nb.date) + ', ' + LABEL[nb.type] + '</p><p class="muted num">' + fmtClock(sp.start) + ' to ' + fmtClock(sp.end) + '</p><p class="note" style="margin-top:6px">Locker ' + nb.chair + ' is yours during this booking.</p><button class="link" data-act="tab" data-tab="bookings">See details</button></div></div></div>';
+    } else {
+      nx = '<div class="card"><h3>Next booking</h3><p class="muted">Nothing booked yet. Pick a chair and it shows up here.</p></div>';
+    }
+    return '<div class="page-head"><h1>Hi Sam</h1></div>' +
+      '<div class="card"><h3>Your credits</h3><p class="balance num">' + money(bal) + '</p><p class="muted">' + eq(bal) + '</p><div class="row" style="margin-top:12px"><button class="link" data-act="tab" data-tab="credits">Buy more or see history</button></div></div>' +
+      nx +
+      '<div style="margin-top:16px"><button class="btn primary big" data-act="tab" data-tab="book">Book a chair</button></div>' +
+      '<div class="card"><h3>Your credentials</h3><ul class="creds"><li><span>Cosmetology license</span><span class="muted">Verified through Mar 14, 2027</span></li><li><span>Independent contractor registration</span><span class="muted">Verified through Aug 2, 2027</span></li><li><span>Liability insurance</span><span class="muted">Needs renewing by Nov 17</span></li></ul>' +
+      '<div class="soft-note">Your insurance certificate needs renewing by Nov 17. Upload the new one any time and you will be all set. Your credits and membership are safe in the meantime.</div></div>' +
+      '<div class="card"><h3>Membership</h3><p><span class="chip dark">Active</span> <span class="num">$29 a month</span></p><p class="muted" style="margin-top:6px">Next payment on ' + fmtShort(addDays(today(), 31)) + '. Your door code works ' + fmtHM(CFG.door.open) + ' to ' + fmtHM(CFG.door.close) + ' on days you are booked.</p></div>';
+  }
+
+  function viewBook() {
+    var occ = occupancy(), date = state.date, t = now(), i, c;
+    var strip = '';
+    for (i = 0; i < 14; i++) {
+      var k = addDays(today(), i), d = fromKey(k);
+      strip += '<button data-act="date" data-date="' + k + '" aria-pressed="' + (k === date) + '" aria-label="' + fmtDay(k) + '"><small>' + (i === 0 ? 'Today' : WD[d.getDay()]) + '</small><b>' + d.getDate() + '</b></button>';
+    }
+    var grid = '<div class="hd"></div><div class="hd"><b>Morning</b>' + fmtHM(CFG.am.start).replace(':00', '') + ' to ' + fmtHM(CFG.am.end) + '</div><div class="hd"><b>Afternoon</b>' + fmtHM(CFG.pm.start) + ' to ' + fmtHM(CFG.pm.end).replace(':00', '') + '</div><div class="hd"><b>Full day</b>both</div>';
+    for (c = 1; c <= CFG.chairs; c++) {
+      grid += '<div class="chair"><small>Chair</small><span>' + c + '</span></div>';
+      ['AM', 'PM'].forEach(function (bl) {
+        var ci = cellInfo(occ, date, c, bl), sel = state.sel.has(date + '|' + c + '|' + bl);
+        var cls = 'cell', sub = 'Open', dis = false, st = 'open';
+        if (ci.status === 'mine') { cls += ' mine'; sub = 'You'; dis = true; st = 'yours'; }
+        else if (ci.status === 'taken') { cls += ' taken'; sub = 'Taken'; dis = true; st = 'taken'; }
+        else if (ci.ended) { cls += ' ended'; sub = 'Ended'; dis = true; st = 'ended'; }
+        else if (sel) { cls += ' sel'; sub = 'Selected'; st = 'selected'; }
+        else if (ci.started) { sub = fmtLeft(ci.left) + ' left'; st = 'open, already started'; }
+        grid += '<button class="' + cls + '" data-act="cell" data-date="' + date + '" data-chair="' + c + '" data-block="' + bl + '"' + (dis ? ' disabled' : '') + ' aria-pressed="' + sel + '" aria-label="Chair ' + c + ', ' + fmtDay(date) + ', ' + LABEL[bl] + ', ' + st + ', ' + money(CFG.half) + '"><span class="p">' + money(CFG.half) + '</span><span class="s">' + sub + '</span></button>';
+      });
+      var fa = fullAvailable(occ, date, c), fs = state.sel.has(date + '|' + c + '|AM') && state.sel.has(date + '|' + c + '|PM');
+      var amI = cellInfo(occ, date, c, 'AM');
+      if (fs) grid += '<button class="cell sel" data-act="full" data-date="' + date + '" data-chair="' + c + '" aria-pressed="true" aria-label="Chair ' + c + ' full day, selected"><span class="p">' + money(CFG.full) + '</span><span class="s">Selected</span></button>';
+      else if (fa) grid += '<button class="cell" data-act="full" data-date="' + date + '" data-chair="' + c + '" aria-pressed="false" aria-label="Chair ' + c + ' full day, ' + money(CFG.full) + '"><span class="p">' + money(CFG.full) + '</span><span class="s">' + (amI.started ? fmtLeft(span(date, 'FULL').end - t) + ' left' : 'Full day') + '</span></button>';
+      else grid += '<button class="cell na" disabled aria-label="Chair ' + c + ' full day not available"><span class="p">&ndash;</span><span class="s">N/A</span></button>';
+    }
+    return '<div class="page-head"><h1>Find a chair</h1><p class="muted">Tap a block to pick it, or tap several. Credits apply automatically.</p></div>' +
+      '<div class="dates" id="dates">' + strip + '</div>' +
+      '<p class="hours">' + fmtDay(date) + ' &middot; Your door code works ' + fmtHM(CFG.door.open) + ' to ' + fmtHM(CFG.door.close) + '</p>' +
+      '<div class="assign"><span>Not picky? Assign me a chair:</span><button class="btn small" data-act="assign" data-type="AM">Morning</button><button class="btn small" data-act="assign" data-type="PM">Afternoon</button><button class="btn small" data-act="assign" data-type="FULL">Full day</button></div>' +
+      '<div class="rooster" role="group" aria-label="Chairs for ' + fmtDay(date) + '">' + grid + '</div>' +
+      '<div class="legend"><span><i></i>Open</span><span><i class="s"></i>Selected</span><span><i class="m"></i>Yours</span><span><i class="t"></i>Taken</span></div>' +
+      '<p class="footnote">Same price for every chair and every day. A block that has already started costs the same, and the time already gone is not refunded.</p>';
+  }
+
+  function bookingCard(b) {
+    var p = policy(b), sp = span(b.date, b.type), chips = '', actions = '';
+    if (b.status === 'cancelled') chips = '<span class="chip">Canceled</span>';
+    else if (b.status === 'review') chips = '<span class="chip soft">Review requested</span>';
+    else if (p.phase === 'upcoming') chips = '<span class="chip dark">Upcoming</span>';
+    else if (p.phase === 'inprogress') chips = '<span class="chip dark">In progress</span>';
+    else chips = '<span class="chip">Past</span>';
+    if (b.final && b.status === 'booked') chips += ' <span class="chip soft">Final</span>';
+
+    if (b.status === 'booked' || b.status === 'review') {
+      if (p.canCancel) {
+        if (state.openCancel === b.id) {
+          var amt = Math.round(b.cost * p.pct / 100);
+          actions = '<div class="inline-panel"><p><b>' + money(amt) + '</b> comes back to you in credits (' + p.pct + '%).' + (p.pct === 50 ? ' This block starts in less than 24 hours.' : '') + '</p><div class="btns" style="margin-top:10px"><button class="btn small" data-act="closeInline">Keep it</button><button class="btn small primary" data-act="doCancel" data-id="' + b.id + '">Yes, cancel</button></div></div>';
+        } else {
+          actions = '<button class="link" data-act="askCancel" data-id="' + b.id + '">Cancel this booking</button><p class="note">' + (p.pct === 100 ? 'Full refund in credits until ' + fmtDay(key(p.freeUntil)) + ' at ' + fmtClock(p.freeUntil) + ' After that, 50% back.' : '50% back in credits until the block starts.') + '</p>';
+        }
+      } else if (p.canReview) {
+        if (state.openReview === b.id) {
+          actions = '<div class="inline-panel"><p>Things come up. Tell us what happened and we will take a look. Reviews are not guaranteed, and no documents are needed.</p><label class="note" for="why-' + b.id + '">What happened?</label><textarea id="why-' + b.id + '" placeholder="A sentence is plenty."></textarea><div class="btns"><button class="btn small" data-act="closeInline">Not now</button><button class="btn small primary" data-act="sendReview" data-id="' + b.id + '">Send</button></div></div>';
+        } else {
+          actions = '<button class="link" data-act="askReview" data-id="' + b.id + '">Didn&rsquo;t make it? Ask us to review this booking</button>';
+        }
+      } else if (b.final && p.phase === 'upcoming') {
+        actions = '<p class="note">' + (b.finalReason === 'bulk' ? 'Booking 4 or more chairs in the same block is final.' : 'This block had already started when it was booked, so it is final.') + '</p>';
+      } else if (p.phase === 'inprogress') {
+        actions = '<p class="note">Under way now. Have a great shift.</p>';
+      } else if (b.status === 'review') {
+        actions = '<p class="note">We have your note and will take a look.</p>';
+      }
+    }
+    return '<div class="card bk">' + badge(b.chair) + '<div><span class="bk-title">' + fmtDay(b.date) + ', ' + LABEL[b.type] + '</span><p class="muted num">' + fmtClock(sp.start) + ' to ' + fmtClock(sp.end) + ' &middot; ' + money(b.cost) + '</p><div style="margin-top:6px">' + chips + '</div><div class="bk-actions">' + actions + '</div></div></div>';
+  }
+  function viewBookings() {
+    var all = myBookings(), t = now();
+    var up = all.filter(function (b) { return b.status !== 'cancelled' && span(b.date, b.type).end > t; }).sort(function (a, b) { return span(a.date, a.type).start - span(b.date, b.type).start; });
+    var past = all.filter(function (b) { return b.status !== 'cancelled' && span(b.date, b.type).end <= t; }).sort(function (a, b) { return span(b.date, b.type).start - span(a.date, a.type).start; });
+    var canc = all.filter(function (b) { return b.status === 'cancelled'; });
+    var h = '<div class="page-head"><h1>My bookings</h1></div>';
+    h += '<h2 class="sec-title">Upcoming</h2>' + (up.length ? up.map(bookingCard).join('') : '<div class="card"><p class="muted">Nothing coming up. <button class="link" data-act="tab" data-tab="book">Book a chair</button></p></div>');
+    if (past.length) h += '<h2 class="sec-title">Past</h2>' + past.map(bookingCard).join('');
+    if (canc.length) h += '<h2 class="sec-title">Canceled</h2>' + canc.map(bookingCard).join('');
+    return h;
+  }
+
+  function packRows() {
+    return PACKS.map(function (p) {
+      var save = p.credits - p.price, per = p.days >= 1 ? Math.round(p.price / p.days) : null;
+      var sub = p.id === 'half' ? 'One morning or afternoon' : (per ? money(per) + ' a day' : '') + (save > 0 ? ' &middot; save ' + money(save) : '');
+      return '<div class="pack"><div><b>' + p.label + '</b> ' + (p.id === 'd20' ? '<span class="chip dark">Best value</span>' : '') + '<p class="muted num">' + sub + (save > 0 ? '<br>You get ' + money(p.credits) + ' in credits' : '') + '</p></div><div class="stack" style="align-items:flex-end;gap:6px"><span class="price num">' + money(p.price) + '</span><button class="btn small" data-act="pickPack" data-id="' + p.id + '">Buy</button></div></div>';
+    }).join('');
+  }
+  function viewCredits() {
+    var bal = balance();
+    var led = state.ledger.slice().sort(function (a, b) { return b.ts - a.ts; }).map(function (l) {
+      var d = l.ts; return '<li><span class="d">' + MO[d.getMonth()] + ' ' + d.getDate() + '</span><span>' + esc(l.desc) + '</span><span class="a num">' + (l.amount > 0 ? '+' : '&minus;') + money(Math.abs(l.amount)) + '</span></li>';
+    }).join('');
+    return '<div class="page-head"><h1>Credits</h1></div>' +
+      '<div class="card"><h3>Balance</h3><p class="balance num">' + money(bal) + '</p><p class="muted">' + eq(bal) + '</p><p class="note" style="margin-top:8px">Credits never expire. They are for chair time, and refunds always come back as credits.</p></div>' +
+      '<div class="card"><h3>Buy credits</h3><p class="muted">Bigger packs cost less per day. Booking prices stay the same.</p><div style="margin-top:8px">' + packRows() + '</div></div>' +
+      '<div class="card"><h3>History</h3><ul class="ledger">' + led + '</ul></div>';
+  }
+
+  // ---------- Admin views ----------
+  function quietest() {
+    var occ = occupancy(), best = null;
+    for (var i = 1; i <= 7; i++) {
+      var k = addDays(today(), i);
+      ['AM', 'PM'].forEach(function (bl) {
+        var n = 0; for (var c = 1; c <= CFG.chairs; c++) if (occ.has(k + '|' + c + '|' + bl)) n++;
+        if (!best || n < best.n) best = { date: k, block: bl, n: n };
+      });
+    }
+    return best;
+  }
+  function util(fromOffset, days) {
+    var occ = occupancy(), booked = 0, total = 0, perDay = [];
+    for (var i = fromOffset; i < fromOffset + days; i++) {
+      var k = addDays(today(), i), b = 0;
+      ['AM', 'PM'].forEach(function (bl) { for (var c = 1; c <= CFG.chairs; c++) { total++; if (occ.has(k + '|' + c + '|' + bl)) { booked++; b++; } } });
+      perDay.push({ date: k, pct: Math.round(b / (CFG.chairs * 2) * 100) });
+    }
+    return { pct: Math.round(booked / total * 100), booked: booked, total: total, perDay: perDay };
+  }
+  function openCounts() {
+    var a = state.admin;
+    return {
+      apps: a.apps.filter(function (x) { return x.status === 'review'; }).length,
+      reviews: a.reviews.filter(function (x) { return x.status === 'open'; }).length,
+      exp: a.expiring.filter(function (x) { return !x.sent; }).length,
+      quiet: a.promo ? 0 : 1
+    };
+  }
+  function appCard(a) {
+    var missing = a.docs.some(function (d) { return d[1] === 'missing'; });
+    var list = a.docs.map(function (d) { return '<li><span class="ck">' + (d[1] === 'ok' ? '&check;' : '&#9675;') + '</span><span>' + d[0] + '</span><span class="note">' + (d[1] === 'ok' ? d[2] : '<b>Missing:</b> ' + d[2]) + '</span></li>'; }).join('');
+    var head = '<div class="row"><div><b style="font-size:18px;font-weight:600">' + a.name + '</b><p class="muted">' + a.trade + ' &middot; applied ' + a.applied + ' &middot; toured ' + a.toured + '</p></div>' + (a.status === 'review' ? '<span class="chip soft">Needs review</span>' : '') + '</div>';
+    var foot;
+    if (a.status === 'review') {
+      foot = '<div class="btns" style="margin-top:12px"><button class="btn small primary" data-act="appOk" data-id="' + a.id + '">' + (missing ? 'Approve conditionally' : 'Approve') + '</button><button class="btn small" data-act="appInfo" data-id="' + a.id + '">Ask for more information</button><button class="btn small" data-act="appNo" data-id="' + a.id + '">Not approved this time</button></div>' + (missing ? '<p class="note" style="margin-top:8px">Conditional approval lets them join and buy credits. They can&rsquo;t book until the missing items are verified.</p>' : '');
+    } else {
+      var msg = a.status === 'approved' ? (missing ? 'Conditionally approved. ' + first(a.name) + ' got a welcome email with the membership link and a list of what is still needed.' : 'Approved. ' + first(a.name) + ' got a welcome email with the membership link.') : a.status === 'info' ? 'We asked ' + first(a.name) + ' for the missing items with a friendly note.' : 'We sent ' + first(a.name) + ' a kind note about what is needed and how to try again.';
+      foot = '<div class="outcome">' + msg + ' <button class="link" data-act="appUndo" data-id="' + a.id + '">Undo</button></div>';
+    }
+    return '<div class="card">' + head + '<ul class="docs">' + list + '</ul>' + foot + '</div>';
+  }
+  function reviewCard(r) {
+    var head = '<div class="row"><div><b style="font-size:18px;font-weight:600">' + r.name + '</b><p class="muted">' + r.when + ' &middot; Chair ' + r.chair + ' &middot; ' + money(r.cost) + '</p></div><span class="chip soft">Courtesy review ' + (r.used + 1) + ' of 3</span></div><p style="margin-top:8px">&ldquo;' + esc(r.note) + '&rdquo;</p>';
+    var foot;
+    if (r.status === 'open') {
+      foot = '<div class="btns" style="margin-top:12px"><button class="btn small primary" data-act="rvFull" data-id="' + r.id + '">Return ' + money(r.cost) + '</button><button class="btn small" data-act="rvHalf" data-id="' + r.id + '">Return ' + money(Math.round(r.cost / 2)) + '</button><button class="btn small" data-act="rvNo" data-id="' + r.id + '">Decline kindly</button></div>';
+    } else {
+      var msg = r.status === 'full' ? money(r.cost) + ' returned to ' + first(r.name) + '&rsquo;s credits, with a kind note.' : r.status === 'half' ? money(Math.round(r.cost / 2)) + ' returned to ' + first(r.name) + '&rsquo;s credits, with a kind note.' : 'Declined, with a kind note and an invitation to book again.';
+      foot = '<div class="outcome">' + msg + ' <button class="link" data-act="rvUndo" data-id="' + r.id + '">Undo</button></div>';
+    }
+    return '<div class="card">' + head + foot + '</div>';
+  }
+  function expCard(e) {
+    return '<li class="srow" style="cursor:default"><div><b>' + e.name + '</b><div class="muted" style="font-size:14px">' + e.what + ' renews in ' + e.days + ' days</div></div>' + (e.sent ? '<span class="chip soft">Reminder sent</span>' : '<button class="btn small" data-act="expSend" data-id="' + e.id + '">Send a reminder</button>') + '</li>';
+  }
+  function viewInbox() {
+    var a = state.admin, c = openCounts(), q = quietest();
+    var apps = a.apps.map(appCard).join('');
+    var revs = a.reviews.map(reviewCard).join('');
+    var qb = a.promo ? '<div class="outcome">Promo scheduled for tomorrow at 9:00 a.m. to members who have not booked in 3 weeks.</div>' : '<div class="row" style="margin-top:6px"><p>' + fmtDay(q.date) + ' ' + LABEL[q.block].toLowerCase() + ' has <b>' + q.n + ' of ' + CFG.chairs + '</b> chairs booked.</p><button class="btn small primary" data-act="promo">Run a promo</button></div>';
+    return '<div class="page-head"><h1>Needs attention</h1><p class="muted">Good morning. Here is what is waiting for you today.</p></div>' +
+      '<div class="counts"><div><b>' + c.apps + '</b><span>applications to review</span></div><div><b>' + c.reviews + '</b><span>review requests</span></div><div><b>' + c.exp + '</b><span>credentials renewing soon</span></div><div><b>' + c.quiet + '</b><span>quiet block to fill</span></div></div>' +
+      '<h2 class="sec-title">Applications</h2>' + (c.apps || a.apps.length ? '<div class="two">' + apps + '</div>' : '') +
+      '<h2 class="sec-title">Review requests</h2><div class="two">' + revs + '</div>' +
+      '<div class="two"><div><h2 class="sec-title">Renewing soon</h2><div class="card"><ul style="list-style:none;margin:0;padding:0">' + a.expiring.map(expCard).join('') + '</ul><p class="note" style="margin-top:8px">Automatic reminders already go out at 60, 30, 14, and 7 days. These buttons are for a personal nudge.</p></div></div>' +
+      '<div><h2 class="sec-title">Quiet next week</h2><div class="card"><p class="muted">The emptiest block in the next 7 days.</p>' + qb + '</div></div></div>';
+  }
+  function viewToday() {
+    var occ = occupancy(), date = today(), t = now(), rows = '';
+    for (var c = 1; c <= CFG.chairs; c++) {
+      rows += '<div class="chair"><small>Chair</small><span>' + c + '</span></div>';
+      ['AM', 'PM'].forEach(function (bl) {
+        var o = occ.get(date + '|' + c + '|' + bl), sp = span(date, bl);
+        if (!o) { rows += '<div class="bcell open">Open</div>'; return; }
+        var name = o.owner === 'me' ? 'Sam R.' : NAMES[Math.floor(hash(date + '|' + c + '|' + bl + 'n') * NAMES.length)];
+        var st;
+        if (t >= sp.end) st = 'Done';
+        else if (t < sp.start) st = 'Expected ' + fmtClock(sp.start);
+        else st = (hash(o.id + 'ci') < 0.85 || t - sp.start < 30 * 60000) ? 'Checked in' : 'Hasn&rsquo;t checked in';
+        rows += '<div class="bcell"><b>' + name + '</b><small>' + (o.type === 'FULL' ? 'Full day &middot; ' : '') + st + ' &middot; credentials verified</small></div>';
+      });
+    }
+    var booked = 0; ['AM', 'PM'].forEach(function (bl) { for (var c = 1; c <= CFG.chairs; c++) if (occ.has(date + '|' + c + '|' + bl)) booked++; });
+    return '<div class="page-head"><h1>Today</h1><p class="muted">' + fmtDay(date) + ' &middot; ' + booked + ' of ' + (CFG.chairs * 2) + ' blocks booked</p></div>' +
+      '<div class="rooster board" role="group" aria-label="Today\'s chairs"><div class="hd"></div><div class="hd"><b>Morning</b>' + fmtHM(CFG.am.start).replace(':00', '') + ' to ' + fmtHM(CFG.am.end) + '</div><div class="hd"><b>Afternoon</b>' + fmtHM(CFG.pm.start) + ' to ' + fmtHM(CFG.pm.end).replace(':00', '') + '</div>' + rows + '</div>' +
+      '<p class="footnote">Front desk staff would see this same board, without access to documents or payments. With no front desk, it is simply your view of the day.</p>';
+  }
+  function stylistList() {
+    var a = state.admin, q = state.q.trim().toLowerCase();
+    var list = a.stylists.filter(function (s) {
+      if (state.filter === 'attn' && !s.attn) return false;
+      if (state.filter === 'active' && s.stage !== 'Active') return false;
+      return !q || (s.name + ' ' + s.trade + ' ' + s.stage).toLowerCase().indexOf(q) >= 0;
+    });
+    if (!list.length) return '<p class="muted" style="padding:16px 0">No one matches that. Try a different search.</p>';
+    return list.map(function (s) {
+      var chip = s.stage === 'Active' ? '<span class="chip dark">Active</span>' : s.stage === 'At risk' ? '<span class="chip"><span class="dot"></span>At risk</span>' : '<span class="chip soft">' + s.stage + '</span>';
+      return '<button class="srow" data-act="stylist" data-id="' + s.id + '"><b>' + s.name + '</b>' + chip + '<span class="meta">' + s.trade + ' &middot; ' + money(s.credits) + ' in credits &middot; ' + s.last + ' &middot; ' + s.cred + '</span></button>';
+    }).join('');
+  }
+  function viewStylists() {
+    return '<div class="page-head"><h1>Stylists</h1><p class="muted">Everyone in the network, with their credentials and activity in one place.</p></div>' +
+      '<input class="search" id="find" type="search" placeholder="Search by name, trade, or stage" aria-label="Search stylists" value="' + esc(state.q) + '">' +
+      '<div class="filters"><button data-act="filter" data-f="all" aria-pressed="' + (state.filter === 'all') + '">All</button><button data-act="filter" data-f="attn" aria-pressed="' + (state.filter === 'attn') + '">Needs attention</button><button data-act="filter" data-f="active" aria-pressed="' + (state.filter === 'active') + '">Active</button></div>' +
+      '<div class="card" id="slist" style="padding-top:4px;padding-bottom:4px">' + stylistList() + '</div>';
+  }
+  function viewNumbers() {
+    var u = util(0, 7), a = state.admin, active = 38;
+    var bars = u.perDay.map(function (d) { var dd = fromKey(d.date); return '<div class="bar"><span>' + WD[dd.getDay()] + ' ' + dd.getDate() + '</span><div class="track"><div class="fill" style="width:' + d.pct + '%"></div></div><span class="num">' + d.pct + '%</span></div>'; }).join('');
+    return '<div class="page-head"><h1>Numbers</h1><p class="muted">One number matters most: how many chair blocks are booked.</p></div>' +
+      '<div class="stats"><div class="card"><span class="label">Chair utilization, next 7 days</span><b class="num">' + u.pct + '%</b><span class="muted">' + u.booked + ' of ' + u.total + ' blocks booked</span></div>' +
+      '<div class="card"><span class="label">Active members</span><b class="num">' + active + '</b><span class="muted">sample figure</span></div>' +
+      '<div class="card"><span class="label">Membership, monthly</span><b class="num">' + money(active * 29) + '</b><span class="muted">' + active + ' members at $28</span></div>' +
+      '<div class="card"><span class="label">Credits outstanding</span><b class="num">$14,720</b><span class="muted">chair time owed to members (sample)</span></div></div>' +
+      '<div class="card"><h3>Booked blocks by day</h3><p class="muted">Share of the 14 morning and afternoon blocks that are booked.</p><div class="bars">' + bars + '</div></div>' +
+      '<p class="footnote">Members, membership revenue, and credits outstanding are sample figures. Utilization is calculated from the bookings in this demo.</p>';
+  }
+
+  // ---------- Dock, sheets ----------
+  function renderDock() {
+    var admin = state.mode === 'admin', items = (!admin && state.tab === 'book') ? groupSel() : [], sum = '';
+    if (items.length) {
+      var total = items.reduce(function (s, i) { return s + i.cost; }, 0);
+      sum = '<div class="sum"><b class="num">' + items.length + (items.length === 1 ? ' booking' : ' bookings') + ' &middot; ' + money(total) + '</b><button class="btn small" data-act="review">Review &amp; book</button></div>';
+    }
+    var tabs = admin ? [['inbox', 'Inbox'], ['today', 'Today'], ['stylists', 'Stylists'], ['numbers', 'Numbers']] : [['home', 'Home'], ['book', 'Book'], ['bookings', 'Bookings'], ['credits', 'Credits']];
+    var c = admin ? openCounts() : null;
+    document.getElementById('dock').innerHTML = '<div class="dock-in' + (admin ? ' admin' : '') + '">' + sum + '<nav class="nav" aria-label="Main">' + tabs.map(function (x) {
+      var b = (admin && x[0] === 'inbox' && (c.apps + c.reviews) > 0) ? '<span class="badge">' + (c.apps + c.reviews) + '</span>' : '';
+      return '<button data-act="tab" data-tab="' + x[0] + '"' + (state.tab === x[0] ? ' aria-current="page"' : '') + '>' + x[1] + b + '</button>';
+    }).join('') + '</nav></div>';
+  }
+  function sheetConfirm() {
+    var items = groupSel(), t = now();
+    if (!items.length) return '<h2 id="sheetTitle">Nothing selected</h2><button class="btn" data-act="closeSheet">Close</button>';
+    var total = items.reduce(function (s, i) { return s + i.cost; }, 0), bal = balance();
+    var lines = items.map(function (i) {
+      return '<li class="line"><div><b>Chair ' + i.chair + '</b> &middot; ' + fmtDay(i.date) + '<br><span class="muted">' + LABEL[i.type] + ', ' + fmtClock(i.start) + ' to ' + fmtClock(i.end) + '</span>' + (i.late ? '<br><span class="note">Already under way. You will have ' + fmtLeft(i.end - t) + ' left, and the price stays the same.</span>' : '') + '</div><div class="amt num">' + money(i.cost) + '</div></li>';
+    }).join('');
+    var notices = '';
+    if (items.some(function (i) { return i.reason === 'bulk'; })) notices += '<div class="notice">Booking ' + CFG.bulkMin + ' or more chairs in the same block is final. There is no cancellation or review request for these.</div>';
+    if (items.some(function (i) { return i.reason === 'late'; })) notices += '<div class="notice">A block that has already started can&rsquo;t be canceled once it is booked.</div>';
+    var nf = items.filter(function (i) { return !i.final; });
+    if (nf.length) {
+      var f0 = nf[0], hrs = (f0.start - t) / 36e5, txt;
+      if (hrs > 24) { var fu = new Date(f0.start.getTime() - 864e5); txt = 'Cancel for a full refund in credits until ' + fmtDay(key(fu)) + ' at ' + fmtClock(fu) + ' After that, 50% comes back until the block starts.'; }
+      else txt = 'Cancel any time before the block starts and 50% comes back in credits.';
+      notices += '<div class="notice">' + txt + '</div>';
+    }
+    var enough = bal >= total;
+    var balLine = enough ? '<p class="num">Balance <b>' + money(bal) + '</b> &rarr; <b>' + money(bal - total) + '</b> after this booking</p>' : '<p class="num">You have <b>' + money(bal) + '</b> and need <b>' + money(total) + '</b>. Add <b>' + money(total - bal) + '</b> or more to continue.</p>';
+    return '<h2 id="sheetTitle">Review your booking</h2><ul class="lines">' + lines + '</ul>' + notices + '<p class="note">Each chair&rsquo;s locker is yours during your booking, and your door code works for the day.</p>' + balLine +
+      '<div class="btns"><button class="btn" data-act="closeSheet">Back</button>' + (enough ? '<button class="btn primary" data-act="confirmBook">Confirm booking</button>' : '<button class="btn primary" data-act="openPacks">Add credits</button>') + '</div>';
+  }
+  function sheetPacks() {
+    return '<h2 id="sheetTitle">Add credits</h2><p class="muted">Test mode. No real card is charged.</p><div>' + packRows() + '</div><div class="btns"><button class="btn" data-act="closeSheet">Back</button></div>';
+  }
+  function sheetPackConfirm(id) {
+    var p = PACKS.filter(function (x) { return x.id === id; })[0], save = p.credits - p.price;
+    return '<h2 id="sheetTitle">Buy ' + p.label.toLowerCase() + '</h2><ul class="lines"><li class="line"><div><b>' + p.label + '</b><br><span class="muted">You get ' + money(p.credits) + ' in credits' + (save > 0 ? ' and save ' + money(save) : '') + '</span></div><div class="amt num">' + money(p.price) + '</div></li></ul>' +
+      '<p class="note">Test mode. No real card is charged.</p>' +
+      '<label class="check"><input type="checkbox" id="ack"><span>I understand credits can&rsquo;t be refunded to my card. Cancellations and approved reviews come back as credits.</span></label>' +
+      '<div class="btns"><button class="btn" data-act="closeSheet">Back</button><button class="btn primary" id="buyBtn" data-act="buyPack" data-id="' + p.id + '" disabled>Buy ' + money(p.price) + '</button></div>';
+  }
+  function sheetPromo() {
+    var q = quietest();
+    return '<h2 id="sheetTitle">Fill a quiet block</h2><p class="muted">A draft to members who have not booked in 3 weeks (14 people). Edit anything before it goes out.</p>' +
+      '<div class="draft"><b>Subject:</b> ' + LABEL[q.block] + ' chairs are open on ' + fmtDay(q.date) + '\n\nHi {first name},\n\nWe have room on ' + fmtDay(q.date) + ' in the ' + LABEL[q.block].toLowerCase() + '. Book it any time and we will add 10 bonus credits to your balance. Bonus credits are good for 30 days.\n\nHope to see you soon.\nCult</div>' +
+      '<p class="note">Bonus credits are marked promotional so they can expire, and they are spent first.</p>' +
+      '<div class="btns"><button class="btn" data-act="closeSheet">Back</button><button class="btn primary" data-act="promoGo">Schedule for tomorrow, 9:00 a.m.</button></div>';
+  }
+  function sheetStylist(id) {
+    var s = state.admin.stylists.filter(function (x) { return x.id === id; })[0]; if (!s) return '';
+    var tl = [['Today', s.last], ['Credentials', s.cred], ['Credits', money(s.credits) + ' in the account, never expiring'], ['Joined', 'Toured the space, applied, approved, started membership']];
+    var note = state.admin.notes[id] || '';
+    return '<h2 id="sheetTitle">' + s.name + '</h2><p class="muted">' + s.trade + ' &middot; ' + s.stage + '</p>' +
+      '<ul class="lines">' + tl.map(function (r) { return '<li class="line"><span class="label" style="padding-top:4px">' + r[0] + '</span><span style="text-align:right">' + r[1] + '</span></li>'; }).join('') + '</ul>' +
+      '<label class="note" for="nt">Private note (only you see this)</label><textarea id="nt" class="search" style="min-height:80px;margin-top:0" placeholder="Great fit, wants full-time Tuesdays">' + esc(note) + '</textarea>' +
+      '<div class="btns"><button class="btn" data-act="closeSheet">Close</button><button class="btn primary" data-act="saveNote" data-id="' + s.id + '">Save note</button></div>';
+  }
+  function renderSheet() {
+    var s = document.getElementById('sheet'), sh = state.sheet;
+    if (!sh) { s.innerHTML = ''; return; }
+    var inner = sh.kind === 'confirm' ? sheetConfirm() : sh.kind === 'packs' ? sheetPacks() : sh.kind === 'promo' ? sheetPromo() : sh.kind === 'stylist' ? sheetStylist(sh.id) : sheetPackConfirm(sh.id);
+    s.innerHTML = '<div class="backdrop" data-act="closeSheet"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">' + inner + '</div>';
+    var d = s.querySelector('.sheet'); if (d && d.focus) d.focus();
+  }
+  var toastTimer;
+  function toast(msg) {
+    var el = document.getElementById('toast'); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.hidden = true; }, 3800);
+  }
+  function renderTools() {
+    var sel = document.getElementById('clock'); sel.value = state.clockMode;
+    sel.querySelector('option[value="custom"]').hidden = state.clockMode !== 'custom';
+    var n = now(); document.getElementById('clocktext').textContent = 'Prototype clock: ' + fmtDay(key(n)) + ', ' + fmtClock(n);
+  }
+  function render() {
+    if (!state.date || state.date < today()) state.date = today();
+    var admin = state.mode === 'admin';
+    document.getElementById('app').className = 'app' + (admin ? ' admin' : '');
+    document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)); });
+    var v = document.getElementById('view'), t = state.tab;
+    v.innerHTML = admin ? (t === 'inbox' ? viewInbox() : t === 'today' ? viewToday() : t === 'stylists' ? viewStylists() : viewNumbers()) :
+      (t === 'home' ? viewHome() : t === 'book' ? viewBook() : t === 'bookings' ? viewBookings() : viewCredits());
+    renderDock(); renderSheet(); renderTools();
+    var strip = document.getElementById('dates');
+    if (strip) { var on = strip.querySelector('[aria-pressed="true"]'); if (on) strip.scrollLeft = Math.max(0, on.offsetLeft - strip.clientWidth / 2 + on.offsetWidth / 2); }
+  }
+
+  // ---------- Events ----------
+  function appById(id) { return state.admin.apps.filter(function (x) { return x.id === id; })[0]; }
+  function rvById(id) { return state.admin.reviews.filter(function (x) { return x.id === id; })[0]; }
+  var ACTIONS = {
+    mode: function (d) { if (state.mode === d.mode) return; state.mode = d.mode; state.tab = d.mode === 'admin' ? 'inbox' : 'home'; state.sheet = null; state.sel.clear(); render(); window.scrollTo(0, 0); },
+    tab: function (d) { state.tab = d.tab; state.openCancel = null; state.openReview = null; render(); window.scrollTo(0, 0); },
+    date: function (d) { state.date = d.date; render(); },
+    cell: function (d) { toggleCell(d.date, +d.chair, d.block); render(); },
+    full: function (d) { toggleFull(d.date, +d.chair); render(); },
+    assign: function (d) { assign(d.type); render(); },
+    review: function () { state.sheet = { kind: 'confirm' }; render(); },
+    closeSheet: function () { state.sheet = null; render(); },
+    confirmBook: function () { doBook(); },
+    openPacks: function () { state.sheet = { kind: 'packs', back: true }; render(); },
+    pickPack: function (d) { state.sheet = { kind: 'packConfirm', id: d.id, back: !!(state.sheet && state.sheet.back) }; render(); },
+    buyPack: function (d) { var a = document.getElementById('ack'); if (a && a.checked) buyPack(d.id); },
+    askCancel: function (d) { state.openCancel = d.id; state.openReview = null; render(); },
+    askReview: function (d) { state.openReview = d.id; state.openCancel = null; render(); },
+    closeInline: function () { state.openCancel = null; state.openReview = null; render(); },
+    doCancel: function (d) { doCancel(d.id); },
+    sendReview: function (d) { sendReview(d.id); },
+    dayShift: function (d) { state.offset += (+d.n) * 864e5; state.clockMode = 'custom'; state.sel.clear(); render(); },
+    resetDemo: function () { var tab = state.tab, mode = state.mode; init(); state.tab = tab; state.mode = mode; render(); toast('Demo reset.'); },
+    // admin
+    appOk: function (d) {
+      var a = appById(d.id); a.status = 'approved';
+      if (!state.admin.stylists.some(function (s) { return s.id === 'n' + a.id; })) {
+        var miss = a.docs.some(function (x) { return x[1] === 'missing'; });
+        state.admin.stylists.unshift({ id: 'n' + a.id, name: a.name, trade: a.trade, stage: miss ? 'Conditionally approved' : 'Active', credits: 0, last: 'Just approved', cred: miss ? 'Some items still needed' : 'All verified', attn: miss });
+      }
+      render(); toast(first(a.name) + ' is approved. A welcome email is on its way.');
+    },
+    appInfo: function (d) { var a = appById(d.id); a.status = 'info'; render(); toast('Asked ' + first(a.name) + ' for the missing items.'); },
+    appNo: function (d) { var a = appById(d.id); a.status = 'declined'; render(); toast('Sent ' + first(a.name) + ' a kind note.'); },
+    appUndo: function (d) { var a = appById(d.id); a.status = 'review'; state.admin.stylists = state.admin.stylists.filter(function (s) { return s.id !== 'n' + a.id; }); render(); },
+    rvFull: function (d) { rvById(d.id).status = 'full'; render(); toast('Credits returned, with a kind note.'); },
+    rvHalf: function (d) { rvById(d.id).status = 'half'; render(); toast('Half returned, with a kind note.'); },
+    rvNo: function (d) { rvById(d.id).status = 'no'; render(); toast('Declined kindly.'); },
+    rvUndo: function (d) { rvById(d.id).status = 'open'; render(); },
+    expSend: function (d) { var e = state.admin.expiring.filter(function (x) { return x.id === d.id; })[0]; e.sent = true; render(); toast('Reminder sent to ' + first(e.name) + '.'); },
+    promo: function () { state.sheet = { kind: 'promo' }; render(); },
+    promoGo: function () { state.admin.promo = true; state.sheet = null; render(); toast('Scheduled for tomorrow at 9:00 a.m.'); },
+    filter: function (d) { state.filter = d.f; render(); },
+    stylist: function (d) { state.sheet = { kind: 'stylist', id: d.id }; render(); },
+    saveNote: function (d) { var t = document.getElementById('nt'); state.admin.notes[d.id] = t ? t.value : ''; state.sheet = null; render(); toast('Note saved.'); }
+  };
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-act]') : null;
+    if (!t || t.disabled) return;
+    var fn = ACTIONS[t.dataset.act]; if (fn) fn(t.dataset, t, e);
+  });
+  document.addEventListener('input', function (e) {
+    if (e.target.id === 'find') { state.q = e.target.value; var l = document.getElementById('slist'); if (l) l.innerHTML = stylistList(); }
+  });
+  document.addEventListener('change', function (e) {
+    var id = e.target.id;
+    if (id === 'ack') { var b = document.getElementById('buyBtn'); if (b) b.disabled = !e.target.checked; }
+    if (id === 'clock') {
+      var v = e.target.value; state.sel.clear();
+      if (v === 'real') { state.offset = 0; state.clockMode = 'real'; }
+      else if (v !== 'custom') { var target = atTime(key(new Date()), v.slice(0, 2) + ':' + v.slice(2)); state.offset = target.getTime() - Date.now(); state.clockMode = v; }
+      render();
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.sheet) { state.sheet = null; render(); } });
+
+  init(); render();
+  window.chareDemo = { state: function () { return state; }, now: now, balance: balance, policy: policy, groupSel: groupSel, CFG: CFG };
+})();
+</script>

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://YOUR-DOMAIN/</loc></url>
-  <url><loc>https://YOUR-DOMAIN/book.html</loc></url>
-  <url><loc>https://YOUR-DOMAIN/bio.html</loc></url>
-  <url><loc>https://YOUR-DOMAIN/gallery.html</loc></url>
-  <url><loc>https://YOUR-DOMAIN/space.html</loc></url>
+  <url><loc>https://culthairpdx.com/</loc></url>
+  <url><loc>https://culthairpdx.com/rent.html</loc></url>
+  <url><loc>https://culthairpdx.com/join.html</loc></url>
+  <url><loc>https://culthairpdx.com/book.html</loc></url>
+  <url><loc>https://culthairpdx.com/space.html</loc></url>
+  <url><loc>https://culthairpdx.com/terms.html</loc></url>
+  <url><loc>https://culthairpdx.com/privacy.html</loc></url>
 </urlset>
