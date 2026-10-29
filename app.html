@@ -28,6 +28,8 @@ button,.btn{font:500 18px var(--display);border:1.5px solid var(--ink);backgroun
 button.solid{background:var(--ink);color:#fff}
 button:hover:not(:disabled){background:var(--coral);border-color:var(--coral);color:var(--ink)}
 button:disabled{opacity:.35;cursor:not-allowed}
+/* show/hide password */
+.pwbox{position:relative;display:block}.pwbox input{width:100%;padding-right:70px}.pwbox .eye{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:none;min-height:0;padding:8px 10px;font-size:14px;text-decoration:underline;color:var(--ink);cursor:pointer}
 button.link{border:0;padding:6px 0;min-height:0;text-decoration:underline;background:none}
 input,select,textarea{font:inherit;font-size:18px;padding:11px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);width:100%;min-height:46px;border-radius:0}
 label{display:grid;gap:4px;font-size:15px;color:var(--mute);margin-bottom:12px}
@@ -150,11 +152,13 @@ button.done{background:#1b7f3b;color:#fff;border-color:#1b7f3b;pointer-events:no
 const SB_URL='https://qblpguaqjsqklvteurnk.supabase.co';
 const SB_KEY='sb_publishable_sw1FEEPMV7kWwVnToziXjA_QppsUaQT';
 const AGREEMENT_VERSION='draft-2026-10d';
+const WAS_RECOVERY=/type=recovery/.test(location.hash);
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const S={user:null,prof:null,mem:null,docs:[],agreed:false,balance:0,chairs:[],tab:'book',chair:null,mode:'login',msg:'',err:'',taken:[],mine:[],ledger:[],owner:null,cal:null,ocal:null,wk:0,maxAhead:60};
 try{if(new URLSearchParams(location.search).get('join')==='1')S.mode='signup'}catch(e){}
+S.recovering=WAS_RECOVERY;
 const NOW=new Date();
 S.cal={y:NOW.getFullYear(),m:NOW.getMonth(),sel:iso0(NOW)};S.ocal={y:NOW.getFullYear(),m:NOW.getMonth(),sel:iso0(NOW)};
 function iso0(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -216,6 +220,7 @@ async function render(){
   $('#who').textContent=S.user?(S.prof?.full_name||S.user.email):'';
   $('#out').classList.toggle('hide',!S.user);
   const el=$('#app');
+  if(S.recovering&&S.user){el.innerHTML=recView();bindRec();return}
   if(!S.user){el.innerHTML=authView();bindAuth();return}
   if(!S.prof){el.innerHTML='<p>Setting up your profile...</p>';return}
   const isOwner=S.prof.is_admin;
@@ -239,14 +244,18 @@ function authView(){
   <form id="af" class="card">
     ${su?'<label>Full name<input id="fn" required autocomplete="name"></label><label>Phone<input id="ph" type="tel" required autocomplete="tel"></label>':''}
     <label>Email<input id="em" type="email" required autocomplete="email"></label>
-    <label>Password${su?' (8 characters or more)':''}<input id="pw" type="password" required minlength="8" autocomplete="${su?'new-password':'current-password'}"></label>
+    <label>Password${su?' (8 characters or more)':''}<span class="pwbox"><input id="pw" type="password" required minlength="8" autocomplete="${su?'new-password':'current-password'}"><button type="button" class="eye" id="eye" aria-label="Show password" aria-pressed="false">show</button></span></label>
     <div class="row"><button class="solid" type="submit">${su?'create account':'log in'}</button>
     <button type="button" class="link" id="sw">${su?'I already have an account':'had your meet &amp; greet? create your account'}</button></div>
     ${su?'':'<button type="button" class="link small" id="fp">forgot password</button>'}
   </form>
   <p class="small">${su?'Accounts open after your meet &amp; greet, when Sean launches your application. Use the same email you booked with. ':'New stylist? '}<a href="join.html#tour">Book a meet &amp; greet${su?' here':' first'}</a>.</p>`;
 }
+function bindEye(inp,btn){btn.onclick=()=>{const show=inp.type==='password';inp.type=show?'text':'password';btn.textContent=show?'hide':'show';btn.setAttribute('aria-label',show?'Hide password':'Show password');btn.setAttribute('aria-pressed',show?'true':'false')}}
+function recView(){return `<h1>choose a new password.</h1>${banner()}<form id="rf" class="card"><label>New password (8 characters or more)<span class="pwbox"><input id="np" type="password" required minlength="8" autocomplete="new-password"><button type="button" class="eye" id="eye1" aria-label="Show password" aria-pressed="false">show</button></span></label><label>Type it again<span class="pwbox"><input id="np2" type="password" required minlength="8" autocomplete="new-password"><button type="button" class="eye" id="eye2" aria-label="Show password" aria-pressed="false">show</button></span></label><div class="row"><button class="solid" type="submit">save password</button></div></form>`}
+function bindRec(){bindEye($('#np'),$('#eye1'));bindEye($('#np2'),$('#eye2'));$('#rf').onsubmit=e=>{e.preventDefault();run(async()=>{const a=$('#np').value,b=$('#np2').value;if(a!==b)throw new Error('The two passwords do not match.');const {error}=await sb.auth.updateUser({password:a});if(error)throw error;S.recovering=false;try{history.replaceState(null,'',location.pathname+location.search)}catch(x){}note('Password updated.')})}}
 function bindAuth(){
+  if($('#eye'))bindEye($('#pw'),$('#eye'));
   try{const em=new URLSearchParams(location.search).get('email');if(em&&$('#em'))$('#em').value=em}catch(x){}
   $('#sw').onclick=()=>{S.mode=S.mode==='signup'?'login':'signup';note();render()};
   const fp=$('#fp');if(fp)fp.onclick=()=>run(async()=>{
@@ -271,7 +280,7 @@ function bindAuth(){
   })};
 }
 $('#out').onclick=async()=>{await sb.auth.signOut();S.user=null;S.prof=null;note();render()};
-sb.auth.onAuthStateChange(async(ev)=>{if(ev==='PASSWORD_RECOVERY'){const p=prompt('Choose a new password (8 or more characters)');if(p&&p.length>=8){const {error}=await sb.auth.updateUser({password:p});note(error?'':'Password updated.',error?error.message:'')}}});
+sb.auth.onAuthStateChange((ev)=>{if(ev==='PASSWORD_RECOVERY'){S.recovering=true;setTimeout(render,0)}});
 
 /* ---------- stylist ---------- */
 function docInfo(k){
