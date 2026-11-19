@@ -180,13 +180,7 @@ function renderCal(){
 }
 function render(){renderList();renderCal()}
 
-function icsFor(e){
-  const st=d=>new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
-  const x=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
-  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Cult//culthairpdx.com//EN','BEGIN:VEVENT','UID:'+e.id+'@culthairpdx.com','DTSTAMP:'+st(Date.now()),
-    'DTSTART:'+st(e.starts_at),'DTEND:'+st(e.ends_at),'SUMMARY:'+x(e.title),'DESCRIPTION:'+x(e.description+'\n\nprice: '+e.price+'\nhttps://culthairpdx.com/events#'+e.id),
-    'LOCATION:Cult\\, 12 NE 10th Ave\\, Portland\\, OR 97232','END:VEVENT','END:VCALENDAR'].join('\r\n');
-}
+const calBtns=e=>`<a class="btn" href="${FEED}?id=${e.id}&to=google" target="_blank" rel="noopener">add to google calendar</a><a class="btn" href="${FEED}?id=${e.id}">add to apple calendar</a>`;
 function openEv(id){
   const e=EV.find(x=>x.id===id);if(!e)return;
   let su='';
@@ -201,18 +195,17 @@ function openEv(id){
     <div class="in"><span class="tag mono">${KIND[e.kind]||'event'}</span><h2 id="evt">${esc(e.title)}</h2>
     <div class="facts"><div><span class="mono">when</span><b>${part(e.starts_at,{weekday:'short',month:'short',day:'numeric'})}</b></div><div><span class="mono">time</span><b>${tm(e.starts_at)}&ndash;${tm(e.ends_at)}</b></div><div><span class="mono">price</span><b>${esc(e.price)}</b></div>${e.capacity?`<div><span class="mono">spots</span><b>${e.spots_left} of ${e.capacity} left</b></div>`:''}</div>
     ${e.description?`<p style="white-space:pre-line">${esc(e.description)}</p>`:''}<p class="mono" style="color:var(--mute)">cult &middot; 12 ne 10th ave, portland</p>
-    <div class="row"><button class="btn" type="button" id="addcal">add to my calendar</button><button class="btn" type="button" id="closeev">close</button></div>
+    <div class="row">${calBtns(e)}<button class="btn" type="button" id="closeev">close</button></div>
     ${su}</div></div></div>`;
   document.body.style.overflow='hidden';
   $('#closeev').onclick=closeOv;$('#ovbg').onclick=x=>{if(x.target.id==='ovbg')closeOv()};
-  $('#addcal').onclick=()=>{const b=new Blob([icsFor(e)],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='cult-'+e.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.ics';document.body.appendChild(a);a.click();a.remove()};
   const f=$('#rsvpf');
   if(f)f.onsubmit=async x=>{x.preventDefault();const n=$('#r-name').value.trim(),em=$('#r-email').value.trim(),m=$('#r-msg'),btn=$('#r-go');
     if(n.length<2||!/^\S+@\S+\.\S+$/.test(em)){m.textContent='add your name and a working email.';return}
     btn.disabled=true;btn.textContent='saving…';
     const {error}=await sb.rpc('rsvp_event',{p_event:e.id,p_name:n,p_email:em});
     if(error){m.textContent=(error.message||'that did not go through. try again.').toLowerCase();btn.disabled=false;btn.textContent="i'm coming";return}
-    f.outerHTML=`<div class="okbox">you're in, ${esc(n.split(' ')[0].toLowerCase())}. a confirmation is on its way to ${esc(em)}.</div>`;
+    f.outerHTML=`<div class="okbox" style="display:grid;gap:12px"><p>you're in, ${esc(n.split(' ')[0].toLowerCase())}. a confirmation is on its way to ${esc(em)}.</p><p class="mono">put it on your calendar</p><div class="row">${calBtns(e)}</div></div>`;
     load(true)};
   $('#closeev').focus();
   if(location.hash!=='#'+id)history.replaceState(null,'','#'+id);
