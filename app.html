@@ -225,16 +225,20 @@ async function render(){
   if(!S.prof){el.innerHTML='<p>Setting up your profile...</p>';return}
   const isOwner=S.prof.is_admin;
   const costTab=isOwner&&S.tab==='cost';
-  let h=`<h1>${costTab?'cost check':isOwner?'owner':'your chairs'}.</h1>${banner()}`;
+  const evTab=isOwner&&S.tab==='events';
+  const raTab=isOwner&&S.tab==='rentals';
+  let h=`<h1>${costTab?'cost check':evTab?'events':raTab?'rental apps':isOwner?'owner':'your chairs'}.</h1>${banner()}`;
   h+=isOwner
-    ?`<div class="tabs"><button data-v="own" aria-pressed="${S.tab!=='mine'&&!costTab}">owner</button><button data-v="mine" aria-pressed="${S.tab==='mine'}">stylist view</button><button data-v="cost" aria-pressed="${costTab}">cost check</button></div>`
+    ?`<div class="tabs"><button data-v="own" aria-pressed="${S.tab!=='mine'&&!costTab&&!evTab&&!raTab}">owner</button><button data-v="events" aria-pressed="${evTab}">events</button><button data-v="rentals" aria-pressed="${raTab}">rental apps</button><button data-v="mine" aria-pressed="${S.tab==='mine'}">stylist view</button><button data-v="cost" aria-pressed="${costTab}">cost check</button></div>`
     :'';
   if(costTab){el.innerHTML=h+costCheckHTML();bindTabs();initCostCheck();return}
+  if(evTab){el.innerHTML=h+'<div id="ownerbox">loading...</div>';bindTabs();await renderEventsOwner();return}
+  if(raTab){el.innerHTML=h+'<div id="ownerbox">loading...</div>';bindTabs();await renderRentalsOwner();return}
   if(isOwner&&S.tab!=='mine'){el.innerHTML=h+'<div id="ownerbox">loading...</div>';bindTabs();await renderOwner();return}
   h+=await stylistView();
   el.innerHTML=h;bindTabs();bindStylist();
 }
-function bindTabs(){document.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{S.tab=(b.dataset.v==='own'||b.dataset.v==='main')?'book':b.dataset.v==='cost'?'cost':'mine';note();try{await load()}catch(e){}render()})}
+function bindTabs(){document.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{S.tab=(b.dataset.v==='own'||b.dataset.v==='main')?'book':b.dataset.v==='cost'?'cost':b.dataset.v==='events'?'events':b.dataset.v==='rentals'?'rentals':'mine';note();try{await load()}catch(e){}render()})}
 
 /* ---------- auth ---------- */
 function authView(){
@@ -824,6 +828,105 @@ async function renderOwner(){
   act('[data-launch]',async b=>{if(!confirm('Launch the application for '+(b.dataset.nm||'this person')+'? They get an email right away.'))return;const {error}=await sb.rpc('admin_launch_application',{p_id:b.dataset.launch});if(error)throw error;note('Application launched. They got an email.')});
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>showDeleteModal(b.dataset.del,b.dataset.nm));
   act('[data-cr]',async b=>{const a=parseInt(prompt('How many credits? (1 credit = $1)'),10);if(!a)return;const r=prompt('Reason (shown in their history)','Added by owner');const {error}=await sb.rpc('admin_add_credits',{p_user:b.dataset.cr,p_amount:a,p_reason:r||'Added by owner'});if(error)throw error;note('Added '+a+' credits.')});
+}
+
+/* ---------- owner: events ---------- */
+const EV_PHOTOS=['salon-chairs-pink-art','salon-chairs-plants','salon-chairs-three-quarter','salon-chairs-row','salon-chairs-wide','salon-chairs-white-wall','salon-chairs-portrait','salon-reception-wide','salon-reception-angle','salon-products','salon-art-dryer','salon-dryer-wash','salon-station-mirror','salon-s2-mirror','salon-s4-desk'];
+const EV_KIND={night:'night out',class:'class','pop-up':'pop-up',other:'other'};
+const EV_TZ='America/Los_Angeles';
+const evTimes=(()=>{const t=[];for(let h=6;h<=23;h++)for(const m of[0,15,30,45])t.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));return t})();
+const evTimeLabel=t=>{let[h,m]=t.split(':').map(Number);const ap=h>=12?'pm':'am';h=h%12||12;return h+':'+String(m).padStart(2,'0')+' '+ap};
+/* Pacific date + time -> exact moment, so events are right no matter where the phone is */
+function evAt(date,time){
+  const noon=new Date(date+'T12:00:00Z');
+  const off=new Intl.DateTimeFormat('en-US',{timeZone:EV_TZ,timeZoneName:'longOffset'}).formatToParts(noon).find(p=>p.type==='timeZoneName').value.replace('GMT','')||'+00:00';
+  return new Date(date+'T'+time+':00'+off).toISOString();
+}
+const evPart=(d,o)=>new Intl.DateTimeFormat('en-US',Object.assign({timeZone:EV_TZ},o)).format(new Date(d));
+const evYmd=d=>new Intl.DateTimeFormat('en-CA',{timeZone:EV_TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(d));
+const evHm=d=>new Intl.DateTimeFormat('en-GB',{timeZone:EV_TZ,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(d));
+function eventFormHTML(e){
+  e=e||{};const d=e.starts_at?evYmd(e.starts_at):'';const st=e.starts_at?evHm(e.starts_at):'19:00';const en=e.ends_at?evHm(e.ends_at):'22:00';
+  const sel=(id,opts,v)=>`<select id="${id}">${opts.map(([k,l])=>`<option value="${k}"${k===v?' selected':''}>${l}</option>`).join('')}</select>`;
+  const tOpts=evTimes.map(t=>[t,evTimeLabel(t)]);
+  return `<div class="card" id="evformcard"><h2 style="margin-top:0">${e.id?'Edit event':'Add an event'}</h2>
+  <label>Event name<input id="ev-title" maxlength="80" value="${esc(e.title||'')}" placeholder="e.g. karaoke night"></label>
+  <label>Kind${sel('ev-kind',Object.entries(EV_KIND),e.kind||'night')}</label>
+  <label>Date<input id="ev-date" type="date" value="${d}"></label>
+  <div class="row" style="align-items:start"><label style="flex:1;min-width:140px">Starts${sel('ev-start',tOpts,st)}</label><label style="flex:1;min-width:140px">Ends${sel('ev-end',tOpts,en)}</label></div>
+  <label>Price<input id="ev-price" maxlength="40" value="${esc(e.price||'')}" placeholder="free, or e.g. $40"></label>
+  <label>Spots (leave blank for no limit)<input id="ev-cap" inputmode="numeric" value="${e.capacity||''}"></label>
+  <label>Sign-up${sel('ev-signup',[['rsvp','People RSVP on the Cult site (name + email)'],['link','Send people to a link (Eventbrite, Instagram…)'],['none','No sign-up, just show up']],e.signup||'none')}</label>
+  <label id="ev-linkrow"${e.signup==='link'?'':' class="hide"'}>Sign-up link<input id="ev-link" type="url" value="${esc(e.signup_url||'')}" placeholder="https://"></label>
+  <label>About it<textarea id="ev-desc" rows="4" maxlength="2000" placeholder="a few short lines">${esc(e.description||'')}</textarea></label>
+  <label>Photo${sel('ev-photo',[['','No photo'],...EV_PHOTOS.map(p=>[p+'.jpg',p.replace('salon-','').replace(/-/g,' ')])],e.photo||'salon-chairs-pink-art.jpg')}</label>
+  <img id="ev-photoprev" alt="" style="width:100%;max-width:320px;aspect-ratio:16/9;object-fit:cover;border:1.5px solid var(--ink);margin:0 0 12px;display:block">
+  <label style="display:flex;gap:10px;align-items:center;color:var(--ink);font-size:17px"><input type="checkbox" id="ev-pub" style="width:22px;min-height:22px"${e.published===false?'':' checked'}> Show it on the website</label>
+  <div class="row"><button class="solid" id="ev-save" data-id="${e.id||''}">${e.id?'save changes':'publish event'}</button>${e.id?'<button id="ev-cancel">cancel</button>':''}</div></div>`;
+}
+async function renderEventsOwner(){
+  const box=$('#ownerbox');
+  const {data,error}=await sb.rpc('admin_events');
+  if(error){box.innerHTML=`<p class="err">${esc(error.message)}</p>`;return}
+  const now=Date.now();const all=data||[];
+  const up=all.filter(e=>new Date(e.ends_at).getTime()>now),past=all.filter(e=>new Date(e.ends_at).getTime()<=now).reverse();
+  const editing=S.evEdit?all.find(e=>e.id===S.evEdit):null;
+  const row=e=>`<tr><td style="white-space:nowrap">${evPart(e.starts_at,{weekday:'short',month:'short',day:'numeric'})}<div class="small">${evPart(e.starts_at,{hour:'numeric',minute:'2-digit'}).toLowerCase()}</div></td>
+    <td><b>${esc(e.title)}</b><div class="small">${EV_KIND[e.kind]||''} &middot; ${esc(e.price)}${e.published?'':' &middot; <b>hidden</b>'}</div></td>
+    <td>${e.signup==='rsvp'?`<button class="link" data-evwho="${e.id}" data-nm="${esc(e.title)}">${e.going}${e.capacity?' / '+e.capacity:''} coming</button>`:'<span class="small">'+(e.signup==='link'?'link':'walk-in')+'</span>'}</td>
+    <td><div class="row"><button data-evedit="${e.id}">edit</button><button data-evpub="${e.id}|${e.published?'0':'1'}">${e.published?'hide':'show'}</button><button data-evdel="${e.id}" data-nm="${esc(e.title)}">remove</button></div></td></tr>`;
+  const table=list=>`<div style="overflow-x:auto"><table style="min-width:560px"><thead><tr><th>When</th><th>Event</th><th>Sign-ups</th><th></th></tr></thead><tbody>${list.map(row).join('')}</tbody></table></div>`;
+  const feed=SB_URL+'/functions/v1/events-ics';
+  let h=`<p class="small">Events show on <a href="events.html" target="_blank">culthairpdx.com/events</a> right away. You get an email for every RSVP.</p>`;
+  h+=eventFormHTML(editing);
+  h+=`<h2>Upcoming (${up.length})</h2>`+(up.length?table(up):'<p class="small">Nothing coming up. Add your first event above.</p>');
+  if(past.length)h+=`<details style="margin-top:10px"><summary class="small">past events (${past.length})</summary>${table(past)}</details>`;
+  h+=`<div id="evwho"></div><h2>Google Calendar</h2><p class="small">Every event you post here can show up in your Google Calendar. On a computer, open Google Calendar, then <b>Other calendars &rarr; + &rarr; From URL</b>, and paste this link. Google refreshes it every few hours.</p>
+    <div class="row"><input id="ev-feed" readonly value="${feed}" style="flex:1;min-width:220px;font-size:14px"><button id="ev-copy">copy link</button></div>`;
+  box.innerHTML=h;
+  const g=id=>box.querySelector('#'+id);
+  const prev=()=>{const v=g('ev-photo').value;const im=g('ev-photoprev');im.classList.toggle('hide',!v);if(v)im.src='images/'+v};prev();
+  g('ev-photo').onchange=prev;
+  g('ev-signup').onchange=()=>g('ev-linkrow').classList.toggle('hide',g('ev-signup').value!=='link');
+  if(g('ev-cancel'))g('ev-cancel').onclick=()=>{S.evEdit=null;renderEventsOwner()};
+  g('ev-copy').onclick=async()=>{try{await navigator.clipboard.writeText(feed);toast('Link copied.')}catch(e){g('ev-feed').select()}};
+  g('ev-save').onclick=async()=>{const btn=g('ev-save');try{btn.disabled=true;await (async()=>{
+    const date=g('ev-date').value,st=g('ev-start').value,en=g('ev-end').value;
+    if(!g('ev-title').value.trim())throw new Error('Give the event a name.');
+    if(!date)throw new Error('Pick a date.');
+    if(en<=st)throw new Error('The end time needs to be after the start.');
+    const cap=g('ev-cap').value.trim();if(cap&&!/^\d+$/.test(cap))throw new Error('Spots needs to be a number, or blank.');
+    const id=g('ev-save').dataset.id||null;
+    const {error}=await sb.rpc('admin_save_event',{p_id:id,p_title:g('ev-title').value,p_kind:g('ev-kind').value,p_starts_at:evAt(date,st),p_ends_at:evAt(date,en),
+      p_price:g('ev-price').value,p_capacity:cap?parseInt(cap,10):null,p_signup:g('ev-signup').value,p_signup_url:g('ev-link').value,
+      p_description:g('ev-desc').value,p_photo:g('ev-photo').value,p_published:g('ev-pub').checked});
+    if(error)throw error;S.evEdit=null;note(id?'Event saved.':(g('ev-pub').checked?'Event published.':'Event saved (hidden from the website).'));
+  })();await render()}catch(e){btn.disabled=false;toast(e.message||String(e),true)}};
+  box.querySelectorAll('[data-evedit]').forEach(b=>b.onclick=()=>{S.evEdit=b.dataset.evedit;renderEventsOwner().then(()=>{const c=$('#evformcard');if(c)c.scrollIntoView({behavior:'smooth'})})});
+  box.querySelectorAll('[data-evpub]').forEach(b=>b.onclick=()=>run(async()=>{const[i,p]=b.dataset.evpub.split('|');const {error}=await sb.rpc('admin_set_event',{p_id:i,p_published:p==='1',p_remove:false});if(error)throw error;note(p==='1'?'Showing on the website.':'Hidden from the website.')}));
+  box.querySelectorAll('[data-evdel]').forEach(b=>b.onclick=()=>run(async()=>{if(!confirm('Remove '+b.dataset.nm+'? It comes off the website and your list.'))return;const {error}=await sb.rpc('admin_set_event',{p_id:b.dataset.evdel,p_published:null,p_remove:true});if(error)throw error;if(S.evEdit===b.dataset.evdel)S.evEdit=null;note('Event removed.')}));
+  box.querySelectorAll('[data-evwho]').forEach(b=>b.onclick=async()=>{const {data,error}=await sb.rpc('admin_event_rsvps',{p_event:b.dataset.evwho});const w=g('evwho');
+    if(error){toast(error.message,true);return}
+    w.innerHTML=`<div class="card"><h2 style="margin-top:0">Coming to ${b.dataset.nm}</h2>${(data||[]).length?`<table><tbody>${data.map(r=>`<tr><td>${esc(r.full_name)}</td><td><a href="mailto:${esc(r.email)}">${esc(r.email)}</a></td></tr>`).join('')}</tbody></table>`:'<p class="small">No sign-ups yet.</p>'}<p style="margin-top:10px"><button id="evwhoclose">close</button></p></div>`;
+    g('evwhoclose').onclick=()=>{w.innerHTML=''};w.scrollIntoView({behavior:'smooth'})});
+}
+
+/* ---------- owner: classic rental applications ---------- */
+const RA_STATUS=[['new','new'],['contacted','contacted'],['toured','toured'],['renting','renting'],['declined','declined']];
+async function renderRentalsOwner(){
+  const box=$('#ownerbox');
+  const {data,error}=await sb.rpc('admin_rental_applications');
+  if(error){box.innerHTML=`<p class="err">${esc(error.message)}</p>`;return}
+  const list=data||[];const open=list.filter(a=>a.status!=='renting'&&a.status!=='declined'),done=list.filter(a=>a.status==='renting'||a.status==='declined');
+  const card=a=>`<div class="card"><div class="row" style="justify-content:space-between"><b>${esc(a.full_name)}</b><span class="small">${new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span></div>
+    <div class="small"><a href="mailto:${esc(a.email)}">${esc(a.email)}</a>${a.phone?` &middot; <a href="tel:${esc(a.phone)}">${esc(a.phone)}</a>`:''}${a.instagram?` &middot; <a href="https://www.instagram.com/${encodeURIComponent(a.instagram.replace(/^@/,''))}" target="_blank" rel="noopener">${esc(a.instagram)}</a>`:''}</div>
+    <p style="margin:8px 0 0">${a.years?esc(a.years)+' years in the biz &middot; ':''}${esc(a.days_per_week)} days a week${a.specialties&&a.specialties.length?' &middot; '+esc(a.specialties.join(', ')):''}</p>
+    ${a.notes?`<p class="small" style="white-space:pre-line">${esc(a.notes)}</p>`:''}
+    <label style="max-width:240px;margin:10px 0 0">Status<select data-ra="${a.id}">${RA_STATUS.map(([k,l])=>`<option value="${k}"${k===a.status?' selected':''}>${l}</option>`).join('')}</select></label></div>`;
+  box.innerHTML=`<p class="small">Applications from the form on <a href="rent.html#apply" target="_blank">culthairpdx.com/rent</a>. You also get an email for each one.</p>`
+    +(open.length?open.map(card).join(''):'<p class="small">No open applications.</p>')
+    +(done.length?`<details style="margin-top:10px"><summary class="small">renting or declined (${done.length})</summary>${done.map(card).join('')}</details>`:'');
+  box.querySelectorAll('[data-ra]').forEach(s=>s.onchange=async()=>{const {error}=await sb.rpc('admin_set_rental_application',{p_id:s.dataset.ra,p_status:s.value});if(error){toast(error.message,true);return}toast('Status saved.');renderRentalsOwner()});
 }
 
 (async()=>{try{await load()}catch(e){note('',e.message)}
